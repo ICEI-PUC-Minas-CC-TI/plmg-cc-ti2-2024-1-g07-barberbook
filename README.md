@@ -1,13 +1,14 @@
-# [Nome do projeto]
+# [BarberBook]
 
-[Escreva um ou dois  parágrafo resumindo o objetivo do seu projeto.]
+[BarberBook é um sistema web app para agendamento de horários em barbearias, atualmente em desenvolvimento. Este projeto tem como objetivo oferecer uma solução abrangente para a gestão de horários em barbearias, com planos para incluir um sistema de visagismo alimentado por inteligência artificial.]
 
 ## Alunos integrantes da equipe
 
-* [Nome completo do aluno 1]
-* [Nome completo do aluno 2]
-* [Nome completo do aluno 3]
-* [Nome completo do aluno 4]
+* [Caio Souza de Resende]
+* [Guilherme Henrique Siqueira de Lana]
+* [João Gabriel Santos Andrade Almeida]
+* [Leonardo Amaral Passos Figueiredo]
+* [Leonardo de Freitas Viana]
 
 ## Professores responsáveis
 
