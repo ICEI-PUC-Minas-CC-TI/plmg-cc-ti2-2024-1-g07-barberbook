@@ -12,6 +12,8 @@ import Visagism from './components/Visagism';
 import LandingPage from './components/LandingPage';
 import StoreRegister from './components/StoreRegister';
 import MyScheduling from './components/MyScheduling';
+import AddService from './components/AddServices';
+import AddAdditionalService from './components/AddAdditionalService';
 
 function App() {
   return (
@@ -29,6 +31,8 @@ function App() {
         <Route path="/LandingPage" element={<LandingPage />} />
         <Route path="/StoreRegister" element={<StoreRegister />} />
         <Route path="/HomePage/store/:storeId/MyScheduling" element={<MyScheduling />} />
+        <Route path="/HomePage/store/:storeId/AddService" element={<AddService />} />
+        <Route path="/HomePage/store/:storeId/AddAdditionalService" element={<AddAdditionalService />} />
       </Routes>
     </Router>
   );

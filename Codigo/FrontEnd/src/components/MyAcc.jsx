@@ -211,11 +211,11 @@ function MyAcc() {
   };
 
   const handleAddService = () => {
-    // Lógica para adicionar serviços
+    navigate(`/HomePage/store/${storeId}/AddService`);
   };
 
   const handleAddAdditionalService = () => {
-    // Lógica para adicionar serviços adicionais
+    navigate(`/HomePage/store/${storeId}/AddAdditionalService`);
   };
 
   return (
