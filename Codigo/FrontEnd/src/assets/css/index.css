@@ -1,0 +1,105 @@
+  @import url('https://fonts.googleapis.com/css2?family=Raleway:wght@300;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Readex+Pro:wght@600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+  :root {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    font-family: 'Raleway', sans-serif;
+    font-style: normal;
+    line-height: normal;
+    color-scheme: light dark;
+    color: rgba(255, 255, 255, 0.87);
+    background-color: var(--white);
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    --white: white;
+    --primary:#dfceaa; /*#ff455a*/
+    --secondary: #974600; /*#59b4d4*/
+    --black: black;
+    --light-primary: #f5ebd3;/*#ff9ba6*/
+    --light-secondary: #c87900;/*#a9cdda*/
+    --light-black: #00000030;
+    --light-green: #79d479;
+    --light-gray: #ebebeb;
+    --secondary-light-secondary: #0303038a;
+    --secondary-light-green: #26cc2686;
+    --secondary-light-black: #00000090;
+    --secondary-light-gray: #d6d6d638;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  button {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button:active {
+    background-color: transparent;
+  }
+
+  p{
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 300;
+    line-height: normal;
+    color: var(--secondary-light-black);
+    padding:0 1rem 1rem; 
+  }
+
+  .react-calendar {
+    width: 420px !important;
+  }
+
+  .react-calendar__tile--now {
+    background-color: var(--secondary-light-green) !important;
+  }
+
+  .react-calendar__tile {
+    color: var(--black);
+  }
+
+  .react-calendar__tile--active {
+    background-color: var(--secondary-light-secondary) !important;
+    color: var(--black) !important;
+  }
+
+  .react-calendar__navigation__label__labelText {
+    color: var(--black);
+  }
+
+  .react-calendar__navigation__arrow {
+    color: var(--black);
+  }
+
+  ::placeholder {
+    opacity: 0.5;
+  }
+
+  input:focus {
+    border-color: var(--black);
+    outline: var(--black);
+  }
+
+  input {
+    width: 100%;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+    border: .5px solid var(--light-gray);
+    border-radius: 4px;
+    color: var(--secondary-light-black);
+    background-color: var(--secondary-light-gray);
+    padding: 10px;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+  }
