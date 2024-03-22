@@ -1,6 +1,6 @@
 # BarberBook
 
-BarberBook é um sistema web app para agendamento de horários em barbearias, atualmente em desenvolvimento. Este projeto tem como objetivo oferecer uma solução abrangente para a gestão de horários em barbearias, com planos para incluir um sistema de visagismo alimentado por inteligência artificial.
+BarberBook é um sistema web app para agendamento de horários em barbearias, atualmente em desenvolvimento. Este projeto tem como objetivo oferecer uma solução abrangente para a gestão de horários em barbearias, com diferencial em um sistema de visagismo feito por inteligência artificial.
 
 ## Alunos integrantes da equipe
 
