@@ -56,7 +56,7 @@ const Exit = styled.button`
    &:active{
       color: var(--primary);
       background-color: var(--light-secondary);
-    transform: scale(0.95);
+      transform: scale(0.95);
    }
    filter: drop-shadow(0px 2px 2px rgba(0, 0, 0, 0.25));
 `;
@@ -170,6 +170,7 @@ const Footer = styled.div`
 
 function MyAcc() {
   const navigate = useNavigate();
+  const { userId } = useParams();
   const [currentUser, setCurrentUser] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -191,11 +192,11 @@ function MyAcc() {
   };
 
   const handleMyAppointments = () => {
-    navigate(`/HomePage/store/${storeId}/MyScheduling`);
+    navigate(`/HomePage/store/${storeId}/MyScheduling/${userId}`);
   };
 
   const handleMyIdealCut = () => {
-    navigate(`/HomePage/store/${storeId}/VisagismPage`);
+    navigate(`/HomePage/store/${storeId}/VisagismPage/${userId}`);
   };
 
   const handleHistory = () => {
@@ -203,7 +204,7 @@ function MyAcc() {
   };
 
   const handleAvailableTimes = () => {
-    navigate(`/HomePage/store/${storeId}/AdminPage`);
+    navigate(`/HomePage/store/${storeId}/AdminPage/${userId}`);
   };
 
   const handleMonthlyActivity = () => {
@@ -211,11 +212,11 @@ function MyAcc() {
   };
 
   const handleAddService = () => {
-    navigate(`/HomePage/store/${storeId}/AddService`);
+    navigate(`/HomePage/store/${storeId}/AddService/${userId}`);
   };
 
   const handleAddAdditionalService = () => {
-    navigate(`/HomePage/store/${storeId}/AddAdditionalService`);
+    navigate(`/HomePage/store/${storeId}/AddAdditionalService/${userId}`);
   };
 
   return (
@@ -229,7 +230,7 @@ function MyAcc() {
           <DivService>
             <H_2>Olá, {currentUser.name}</H_2>
             <ImgProfileWrapper>
-              <ImgProfile src={currentUser.photo} alt="Foto do perfil" />
+              <ImgProfile src="/profile.svg" alt="Foto de Perfil"/>
             </ImgProfileWrapper>
             {currentUser.type === "admin" ? (
               <>

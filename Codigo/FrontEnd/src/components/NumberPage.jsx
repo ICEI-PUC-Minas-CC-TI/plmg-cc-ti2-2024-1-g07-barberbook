@@ -184,7 +184,7 @@ const AdressBold = styled(Adress)`
 
 function NumberPage() {
   const navigate = useNavigate();
-  const { storeId } = useParams();
+  const { storeId, userId } = useParams();
   const [users, setUsers] = useState([]);
   const [number, setNumber] = useState("");
   const [name, setName] = useState("");
@@ -203,7 +203,7 @@ function NumberPage() {
       setUsers(store.users || []);
     }
     if (localStorage.getItem("currentUser")) {
-      navigate(`/HomePage/store/${storeId}/MyAccount`);
+      navigate(`/HomePage/store/${storeId}/MyAccount/${userId}`);
     }
   }, [store, storeId]);
 
@@ -238,23 +238,24 @@ function NumberPage() {
 
   const handleTestPassword = () => {
     const currentUser = store.users.find(user => user.password === password);
-    if (currentUser && password === currentUser.password) {
+    if (currentUser) {
       currentUser.logged = true;
-      setErrorMessage("Seja bem vindo!");
+      setErrorMessage(`Seja bem vindo, ${currentUser.name}!`); // Corrigido o acesso ao nome do usuário
       setShowModal(true);
       setTimeout(() => {
-        navigate(`/HomePage/store/${storeId}/MyAccount`);
+        setShowModal(false);
         localStorage.setItem("currentUser", JSON.stringify(currentUser));
+        navigate(`/HomePage/store/${storeId}/MyAccount/${userId}`);
       }, 2000);
     } else {
       setErrorMessage("Senha incorreta ou usuário não encontrado.");
-      setTestedPassword(true);
       setShowModal(true);
       setTimeout(() => {
         setShowModal(false);
       }, 2000);
     }
   };
+  
 
   const handleSave = () => {
     if (password.length < 8) {
@@ -270,10 +271,10 @@ function NumberPage() {
       setUsers(updatedUsers); // Atualiza o estado local de usuários
       localStorage.setItem("users", JSON.stringify(updatedUsers)); // Atualiza os usuários no armazenamento local
       localStorage.setItem("currentUser", JSON.stringify(newUser));
-      setErrorMessage("Seja bem vindo!");
+      setErrorMessage(`Seja bem vindo, ${newUser.name}!`);
       setShowModal(true);
       setTimeout(() => {
-        navigate(`/HomePage/store/${storeId}/MyAccount`);
+        navigate(`/HomePage/store/${storeId}/MyAccount${userId}`);
       }, 2000);
     }
   };

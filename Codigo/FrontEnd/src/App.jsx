@@ -25,14 +25,14 @@ function App() {
         <Route path="/HomePage/store/:storeId/ServicePage/:serviceId/AdditionalService" element={<AdditionalService />} />
         <Route path="/HomePage/store/:storeId/ServicePage/:serviceId/AdditionalService/SchedulingPage" element={<Scheduling />} />
         <Route path="/HomePage/store/:storeId/NumberPage" element={<NumberPage />} />
-        <Route path="/HomePage/store/:storeId/MyAccount" element={<MyAcc />} />
-        <Route path="/HomePage/store/:storeId/AdminPage" element={<AdminPage />} />
-        <Route path="/HomePage/store/:storeId/VisagismPage" element={<Visagism />} />
+        <Route path="/HomePage/store/:storeId/MyAccount/:userId/" element={<MyAcc />} />
+        <Route path="/HomePage/store/:storeId/AdminPage/:userId/" element={<AdminPage />} />
+        <Route path="/HomePage/store/:storeId/VisagismPage/:userId/" element={<Visagism />} />
         <Route path="/LandingPage" element={<LandingPage />} />
         <Route path="/StoreRegister" element={<StoreRegister />} />
-        <Route path="/HomePage/store/:storeId/MyScheduling" element={<MyScheduling />} />
-        <Route path="/HomePage/store/:storeId/AddService" element={<AddService />} />
-        <Route path="/HomePage/store/:storeId/AddAdditionalService" element={<AddAdditionalService />} />
+        <Route path="/HomePage/store/:storeId/MyScheduling/:userId/" element={<MyScheduling />} />
+        <Route path="/HomePage/store/:storeId/AddService/:userId/" element={<AddService />} />
+        <Route path="/HomePage/store/:storeId/AddAdditionalService/:userId/" element={<AddAdditionalService />} />
       </Routes>
     </Router>
   );
