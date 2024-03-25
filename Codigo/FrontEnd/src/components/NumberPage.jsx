@@ -184,7 +184,7 @@ const AdressBold = styled(Adress)`
 
 function NumberPage() {
   const navigate = useNavigate();
-  const { storeId } = useParams();
+  const { storeId, userId } = useParams();
   const [users, setUsers] = useState([]);
   const [number, setNumber] = useState("");
   const [name, setName] = useState("");
@@ -203,79 +203,21 @@ function NumberPage() {
       setUsers(store.users || []);
     }
     if (localStorage.getItem("currentUser")) {
-      navigate(`/HomePage/store/${storeId}/MyAccount`);
+      navigate(`/HomePage/store/${storeId}/MyAccount/${userId}`);
     }
   }, [store, storeId]);
 
   const handleNext = () => {
-    console.log(store.user)
-    if (!number || number.trim() === "") {
-      setErrorMessage("Digite um número válido.");
-      setShowModal(true);
-      setTimeout(() => {
-        setShowModal(false);
-      }, 2500);
-    } else if (store.users.find(user => user.phoneNumber === number)) {
-      const currentUser = store.users.find(user => user.phoneNumber === number);
-      if (currentUser) {
-        currentUser.logged = true;
-      }
-      setNumberSaved(true);
-      setOk(true);
-      setNext(false);
-    } else {
-      setName("");
-      setPassword("");
-      setErrorMessage("Número não encontrado. Preencha os campos de nome e idade para cadastrar.");
-      setOk(true);
-      setSave(false);
-      setNext(false);
-      setTimeout(() => {
-        setShowModal(false);
-      }, 2500);
-    }
+    // proxima etapa
   };
 
   const handleTestPassword = () => {
-    const currentUser = store.users.find(user => user.password === password);
-    if (currentUser && password === currentUser.password) {
-      currentUser.logged = true;
-      setErrorMessage("Seja bem vindo!");
-      setShowModal(true);
-      setTimeout(() => {
-        navigate(`/HomePage/store/${storeId}/MyAccount`);
-        localStorage.setItem("currentUser", JSON.stringify(currentUser));
-      }, 2000);
-    } else {
-      setErrorMessage("Senha incorreta ou usuário não encontrado.");
-      setTestedPassword(true);
-      setShowModal(true);
-      setTimeout(() => {
-        setShowModal(false);
-      }, 2000);
-    }
+   // testar senha
   };
+  
 
   const handleSave = () => {
-    if (password.length < 8) {
-      setErrorMessage("A senha deve ter no mínimo 8 caracteres.");
-      setShowModal(true);
-      setTimeout(() => {
-        setShowModal(false);
-      }, 2000);
-    } else {
-      const newUser = { number, name, password, logged: true };
-      const updatedUsers = [...store.users, newUser]; // Adiciona o novo usuário à lista de usuários da loja
-      store.users = updatedUsers; // Atualiza a lista de usuários da loja
-      setUsers(updatedUsers); // Atualiza o estado local de usuários
-      localStorage.setItem("users", JSON.stringify(updatedUsers)); // Atualiza os usuários no armazenamento local
-      localStorage.setItem("currentUser", JSON.stringify(newUser));
-      setErrorMessage("Seja bem vindo!");
-      setShowModal(true);
-      setTimeout(() => {
-        navigate(`/HomePage/store/${storeId}/MyAccount`);
-      }, 2000);
-    }
+    // salvar usuario
   };
 
   return (
@@ -335,11 +277,6 @@ function NumberPage() {
           )}
         </Service>
       </DivService>
-      <Footer>
-        <AdressBold>©2024. Todos os direitos reservados.​</AdressBold>
-        <Adress>Desenvolvido por Guilherme Lana</Adress>
-
-      </Footer>
 
       {showModal && (
         <ModalBackground onClick={() => setShowModal(false)}>

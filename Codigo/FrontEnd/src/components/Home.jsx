@@ -240,6 +240,7 @@ const PaddingButton = styled.div`
 function Home() {
   const navigate = useNavigate();
   const { storeId } = useParams();
+  const { userId } = useParams();
 
   // Encontrar a loja com o ID correspondente ao fornecido na URL
   const store = stores.find(store => store.id === parseInt(storeId));
@@ -303,7 +304,7 @@ function Home() {
 
       <FooterFixed>
         <Button>
-          <FaceIcon style={{ width: '1.4em', height: '1.4em' }} onClick={() => navigate(`/HomePage/store/${store.id}/VisagismPage`)} />
+          <FaceIcon style={{ width: '1.4em', height: '1.4em' }} onClick={() => navigate(`/HomePage/store/${store.id}/VisagismPage/${userId}`)} />
         </Button>
         <PaddingButton>
           <Button style={{ color: 'var(--secondary)' }} onClick={scrollToServices}>
@@ -311,7 +312,7 @@ function Home() {
           </Button>
         </PaddingButton>
         <Button>
-          <PermIdentityIcon style={{ width: '1.4em', height: '1.4em' }} onClick={() => navigate(`/HomePage/store/${store.id}/MyAccount`)} />
+          <PermIdentityIcon style={{ width: '1.4em', height: '1.4em' }} onClick={() => navigate(`/HomePage/store/${store.id}/MyAccount/${userId}`)} />
         </Button>
       </FooterFixed>
     </Page>

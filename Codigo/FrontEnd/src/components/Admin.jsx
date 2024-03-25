@@ -250,7 +250,7 @@ function AdminPage() {
       const [selectedTime, setSelectedTime] = useState('');
       const [availableTimes, setAvailableTimes] = useState([]);
       const [availablePercentage, setAvailablePercentage] = useState(0);
-      const { storeId } = useParams();
+      const { storeId, userId } = useParams();
 
       const isAvailableForSelectedDay = () => {
             const selectedDay = getFormattedDate(selectedDate);

@@ -31,6 +31,16 @@ const Header = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 0 10vw;
+  box-sizing: border-box;
+
+  @media screen and (max-width: 768px) {
+    height: 7rem;
+  }
+
+  @media screen and (max-width: 425px) {
+  justify-content: center;
+  }
 `;
 
 const ImgHeader = styled.img`
@@ -39,11 +49,14 @@ const ImgHeader = styled.img`
   object-fit: cover;
   object-position: center;
   max-height: 14vh;
-  margin:0 2vh;
 
   @media screen and (max-width: 768px) {
     width: 12rem;
     height: 8rem;
+  }
+
+  @media screen and (max-width: 425px) {
+    display: none;
   }
 `;
 
@@ -121,7 +134,6 @@ const DivSearch = styled.div`
   display: flex;
   justify-content: flex-end;
   flex-direction: column;
-  margin: 2vh 3vw;
   color: var(--secondary);
   padding: .5rem .5rem 0 0;
 
@@ -129,11 +141,11 @@ const DivSearch = styled.div`
     background-color: var(--secondary);
     border-radius: 4px 4px 0 0;
     color: var(--primary);
-  }
+  } 
 
-  @media screen and (max-width: 768px){
-    margin:0 10vw 0 0;
-  }
+  @media screen and (max-width: 425px) {
+    max-width: 100%;
+  }  
 `;
 
 const DivInput = styled.div`
@@ -164,6 +176,9 @@ const Search = styled.input`
     height: 1rem; 
     font-size: 0.8rem;
   }
+  @media screen and (max-width: 425px) {
+    width: 100%;
+  }
 `;
 
 const SearchResultDropdown = styled.div`
@@ -190,6 +205,10 @@ const SearchResultDropdown = styled.div`
     &::-webkit-scrollbar-thumb:hover {
         background-color: var(--primary-light); 
     }
+
+    @media screen and (max-width: 425px) {
+      max-width: 80%;
+    }
 `;
 
 const stylesDropdown = {
@@ -206,6 +225,7 @@ const SearchResultItem = styled.div`
   color: var(--primary);
   background-color: transparent;
   font-weight: 600;
+  box-sizing: border-box;
   cursor: pointer;
   font-size: 0.9rem;
   &:active {
@@ -285,7 +305,7 @@ function LandingPage() {
             <Search onChange={searchStore} value={searchQuery} placeholder="Pesquise a barbearia" />
             <SearchIcon onClick={() => searchStore(searchQuery)} />
           </DivInput>
-          {searchResults.length === 0 && searchQuery.length > 0 &&(
+          {searchResults.length === 0 && searchQuery.length > 0 && (
             <SearchResultDropdown style={stylesDropdown.searchResultActive}>
               <SearchResultItem>
                 Nenhuma barbearia encontrada.
@@ -293,7 +313,7 @@ function LandingPage() {
             </SearchResultDropdown>
           )}
 
-          {searchResults.length > 0 && searchQuery.length > 0 &&(
+          {searchResults.length > 0 && searchQuery.length > 0 && (
             <SearchResultDropdown style={stylesDropdown.searchResultActive}>
               {searchResults.map((store, index) => (
                 <SearchResultItem key={index} onClick={() => handleStoreClick(store)}>

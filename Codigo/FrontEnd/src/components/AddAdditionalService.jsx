@@ -170,8 +170,6 @@ function AddAdditionalService() {
                   setShowModal(false)}, 2500);
                   return;
             }
-            console.log('Nome do serviço:', serviceName);
-            console.log('Valor do serviço:', serviceValue);
       };
 
       return (

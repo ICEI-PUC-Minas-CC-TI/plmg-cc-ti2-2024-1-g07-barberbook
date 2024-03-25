@@ -68,11 +68,22 @@ const stores = [
                   {
                         id: 2,
                         type: "client",
-                        name: "Roberto Almeida",
+                        name: "Roberto Campos",
                         phoneNumber: "(11) 1 1111-1111",
-                        password: "22222222",
+                        password: "33333333",
                         photo: "/profile.svg",
                   }
+            ],
+            appointments: [
+                  {
+                        id: 1,
+                        storeId: 1,
+                        userId: 2,
+                        serviceId: 1,
+                        additionalServiceId: 1,
+                        date: "2024-03-01",
+                        time: "09:00"
+                  },
             ]
       },
       {
@@ -124,7 +135,15 @@ const stores = [
                         type: "client",
                         name: "Roberto Almeida",
                         phoneNumber: "(11) 1 1111-1111",
-                        age: "20/10/2000",
+                        password: "22222222",
+                        photo: "/profile.svg",
+                  },
+                  {
+                        id: 2,
+                        type: "client",
+                        name: "Roberto Campos",
+                        phoneNumber: "(11) 1 1111-1111",
+                        password: "33333333",
                         photo: "/profile.svg",
                   }
             ]
@@ -178,7 +197,7 @@ const stores = [
                         type: "client",
                         name: "Roberto Almeida",
                         phoneNumber: "(11) 1 1111-1111",
-                        age: "20/10/2000",
+                        password: "20/10/2000",
                         photo: "/profile.svg",
                   }
             ]
