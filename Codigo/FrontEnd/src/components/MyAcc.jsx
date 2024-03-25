@@ -188,7 +188,7 @@ function MyAcc() {
 
   const handleLogout = () => {
     navigate(`/HomePage/store/${storeId}`);
-    localStorage.removeItem("currentUser");
+    // rota pra logout
   };
 
   const handleMyAppointments = () => {
@@ -200,7 +200,7 @@ function MyAcc() {
   };
 
   const handleHistory = () => {
-    // Lógica para histórico
+    // rota para histórico
   };
 
   const handleAvailableTimes = () => {
@@ -208,15 +208,17 @@ function MyAcc() {
   };
 
   const handleMonthlyActivity = () => {
-    // Lógica para atividade mensal
+    // rota para atividade mensal
   };
 
   const handleAddService = () => {
     navigate(`/HomePage/store/${storeId}/AddService/${userId}`);
+    // rota para adicioanr servico
   };
 
   const handleAddAdditionalService = () => {
     navigate(`/HomePage/store/${storeId}/AddAdditionalService/${userId}`);
+    // rota para adicionar servico adicional
   };
 
   return (

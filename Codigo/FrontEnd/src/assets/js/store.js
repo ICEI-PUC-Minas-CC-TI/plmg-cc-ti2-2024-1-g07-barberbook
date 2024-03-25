@@ -77,53 +77,13 @@ const stores = [
             appointments: [
                   {
                         id: 1,
+                        storeId: 1,
                         userId: 2,
                         serviceId: 1,
                         additionalServiceId: 1,
                         date: "2024-03-01",
                         time: "09:00"
                   },
-                  {
-                        id: 2,
-                        userId: 2,
-                        serviceId: 1,
-                        additionalServiceId: 1,
-                        date: "2024-03-01",
-                        time: "09:30"
-                  },
-                  {
-                        id: 3,
-                        userId: 2,
-                        serviceId: 1,
-                        additionalServiceId: 1,
-                        date: "2024-03-01",
-                        time: "10:00"
-                  },
-                  {
-                        id: 4,
-                        userId: 2,
-                        serviceId: 1,
-                        additionalServiceId: 1,
-                        date: "2024-03-01",
-                        time: "10:30"
-                  },
-                  {
-                        id: 5,
-                        userId: 2,
-                        serviceId: 1,
-                        additionalServiceId: 1,
-                        date: "2024-03-01",
-                        time: "11:00"
-                  },
-                  {
-                        id: 6,
-                        userId: 2,
-                        serviceId: 1,
-                        additionalServiceId: 1,
-                        date: "2024-03-01",
-                        time: "11:30"
-                  },
-            
             ]
       },
       {
@@ -176,6 +136,14 @@ const stores = [
                         name: "Roberto Almeida",
                         phoneNumber: "(11) 1 1111-1111",
                         password: "22222222",
+                        photo: "/profile.svg",
+                  },
+                  {
+                        id: 2,
+                        type: "client",
+                        name: "Roberto Campos",
+                        phoneNumber: "(11) 1 1111-1111",
+                        password: "33333333",
                         photo: "/profile.svg",
                   }
             ]
