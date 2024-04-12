@@ -1,30 +1,35 @@
 package App;
 
 import static spark.Spark.*;
-import service.ProdutoService;
-
+import service.StoresService;
 
 public class Application {
-	
-	private static ProdutoService produtoService = new ProdutoService();
-	
+    private static StoresService storesService = new StoresService();
+
     public static void main(String[] args) {
+        before((request, response) -> {
+            response.header("Access-Control-Allow-Origin", "*"); // Permitir requisições de qualquer origem
+            response.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+            response.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        });
+
+        // Configurar rota para permitir requisições OPTIONS para preflight
+        options("/*", (request, response) -> {
+            response.header("Access-Control-Allow-Origin", "*"); // Permitir requisições de qualquer origem
+            response.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+            response.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+            return "OK";
+        });
+
         port(6789);
-        
         staticFiles.location("/public");
-        
-        post("/produto/insert", (request, response) -> produtoService.insert(request, response));
-
-        get("/produto/:id", (request, response) -> produtoService.get(request, response));
-        
-        get("/produto/list/:orderby", (request, response) -> produtoService.getAll(request, response));
-
-        get("/produto/update/:id", (request, response) -> produtoService.getToUpdate(request, response));
-        
-        post("/produto/update/:id", (request, response) -> produtoService.update(request, response));
-           
-        get("/produto/delete/:id", (request, response) -> produtoService.delete(request, response));
-
-             
+        post("/stores/insert", (request, response) -> storesService.insert(request, response));
+        get("/stores/:id", (request, response) -> storesService.get(request, response));
+        get("/stores/list/:orderby", (request, response) -> storesService.getAll(request, response));
+        // get("/stores/update/:id", (request, response) -> //
+        // storesService.getToUpdate(request, response));
+        // post("/stores/update/:id", (request, response) -> //
+        // storesService.update(request, response));
+        get("/stores/delete/:id", (request, response) -> storesService.delete(request, response));
     }
 }

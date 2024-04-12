@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import SearchIcon from '@mui/icons-material/Search';
 import { useNavigate } from "react-router-dom";
@@ -269,12 +269,22 @@ const Button = styled.button`
   }
 `;
 
-
-
 function LandingPage() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [stores, setStores] = useState([]);
+
+  fetch('http://localhost:6789/stores/list/1')
+    .then(response => response.json())
+    .then(data => {
+      setStores(data);
+      console.log("executou");
+    })
+    .catch(error => {
+      console.error('Erro ao buscar as barbearias:', error);
+      // Aqui você pode adicionar algum tratamento de erro adicional
+    });
 
   const searchStore = (event) => {
     const query = event.target.value;
@@ -290,9 +300,8 @@ function LandingPage() {
     }
   };
 
-
   const handleStoreClick = (store) => {
-    navigate(`/HomePage/store/${store.id}`)
+    navigate(`/HomePage/store/${store.id}`);
     console.log("Loja selecionada:", store);
   };
 
