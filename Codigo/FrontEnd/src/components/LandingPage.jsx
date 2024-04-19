@@ -278,7 +278,7 @@ function LandingPage() {
   useEffect(() => {
     fetch('http://localhost:6789/stores/list/1', {
       method: 'GET',
-      mode: 'no-cors'
+      mode: 'cors'
     })
     .then(response => {
       if (!response.ok) {
