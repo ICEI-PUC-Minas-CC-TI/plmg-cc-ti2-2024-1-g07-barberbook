@@ -21,7 +21,7 @@ public class StoresDAO extends DAO {
       public Stores insert(Stores stores) {
             try {
                   PreparedStatement stmt = conexao.prepareStatement(
-                              "INSERT INTO stores (title, location_image_url, location_url, address, phone_number, whatsapp, instagram, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                              "INSERT INTO stores (title, location_image_url, location_url, address, phone_number, whatsapp, instagram) VALUES (?, ?, ?, ?, ?, ?, ?)",
                               Statement.RETURN_GENERATED_KEYS);
                   stmt.setString(1, stores.getTitle());
                   stmt.setString(2, stores.getLocation_image_url());

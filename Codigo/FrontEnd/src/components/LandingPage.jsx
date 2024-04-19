@@ -275,16 +275,26 @@ function LandingPage() {
   const [searchResults, setSearchResults] = useState([]);
   const [stores, setStores] = useState([]);
 
-  fetch('http://localhost:6789/stores/list/1')
-    .then(response => response.json())
+  useEffect(() => {
+    fetch('http://localhost:6789/stores/list/1', {
+      method: 'GET',
+      mode: 'no-cors'
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
     .then(data => {
       setStores(data);
-      console.log("executou");
+      console.log("executed", data);
     })
     .catch(error => {
-      console.error('Erro ao buscar as barbearias:', error);
-      // Aqui você pode adicionar algum tratamento de erro adicional
+      console.error('Error fetching barber shops:', error);
     });
+  }, []);
+  
 
   const searchStore = (event) => {
     const query = event.target.value;
@@ -302,8 +312,9 @@ function LandingPage() {
 
   const handleStoreClick = (store) => {
     navigate(`/HomePage/store/${store.id}`);
-    console.log("Loja selecionada:", store);
+    console.log("Selected store:", store);
   };
+
 
   return (
     <Container>
