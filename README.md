@@ -12,8 +12,8 @@ BarberBook é um sistema web app para agendamento de horários em barbearias, at
 
 ## Professores responsáveis
 
-* Nome completo do professor 1
-* Nome completo do professor 2
+* Daniel de Oliveira Capanema
+* Amália
 
 ## Instruções de utilização
 
