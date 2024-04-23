@@ -103,7 +103,9 @@ function isValidEmail(email) {
 function StoreRegister() {
       const navigate = useNavigate();
       const [storeName, setStoreName] = useState("");
+      const [phoneNumber, setPhoneNumber] = useState("");
       const [storeAddress, setStoreAddress] = useState("");
+      const [instagram, setInstagram] = useState("");
       const [email, setEmail] = useState("");
       const [password, setPassword] = useState("");
       const [confirmPassword, setConfirmPassword] = useState("");
@@ -141,22 +143,73 @@ function StoreRegister() {
             return password === confirmPassword;
       };
 
-      const handleSubmit = (event) => {
+      const handleSubmit = async (event) => {
             event.preventDefault();
+      
+            // Validações
+            if (
+                  storeName === '' ||
+                  storeAddress === '' ||
+                  email === '' ||
+                  password === '' ||
+                  confirmPassword === ''
+            ) {
+                  alert('Por favor, preencha todos os campos corretamente.');
+                  return; 
+            }
+      
+            if (!isValidEmail(email)) {
+                  setIsValidEmailInput(false);
+                  return;
+            }
+      
             if (!confirmPasswords()) {
                   setPasswordsMatch(false);
                   return;
             }
+            
+            try {
+                  // Preparar os dados do formulário
+                  const formData = new URLSearchParams();
+                  formData.append('title', storeName);
+                  formData.append('location_image_url', '');
+                  formData.append('location_url', '');
+                  formData.append('address', storeAddress);
+                  formData.append('phone_number', phoneNumber);
+                  formData.append('whatsapp', phoneNumber);
+                  formData.append('instagram', instagram);
+
+                  console.log('Enviando os dados:', formData.toString());
+      
+                  const response = await fetch('http://localhost:6789/stores/insert', {
+                        method: 'POST',
+                        headers: {
+                              'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: formData.toString(),
+                  });
+      
+                  if (response.ok) {
+                        console.log('Loja cadastrada com sucesso!');
+                        navigate(-1);
+                  } else {
+                        console.error('Erro ao cadastrar a loja:', response.status);
+                  }
+            } catch (error) {
+                  // Tratar erros de rede ou outros erros inesperados
+                  console.error('Erro ao enviar os dados:', error);
+            }
       };
+      
 
       const handleExit = () => {
             navigate(-1);
-          }
+      }
 
       return (
             <Container>
                   <Circles />
-                  <Page style={{zIndex: '2', backgroundColor:'#ffffffc0', margin: 'auto', borderRadius: '10px', padding: '10px', boxSizing: 'border-box', boxShadow:'0px 4px 4px rgba(0, 0, 0, 0.25)' }}>
+                  <Page style={{ zIndex: '2', backgroundColor: '#ffffffc0', margin: 'auto', borderRadius: '10px', padding: '10px', boxSizing: 'border-box', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)' }}>
                         <Title>Cadastre sua loja!</Title>
                         <FormContainer onSubmit={handleSubmit}>
                               <Label>Nome da loja</Label>
@@ -177,7 +230,7 @@ function StoreRegister() {
                               <Label>Confirmar senha</Label>
                               <Input type="password" placeholder="Confirmar senha" value={confirmPassword} onChange={handleConfirmPasswordChange} />
                               {!passwordsMatch && <p style={{ color: 'red' }}>As senhas não coincidem.</p>}
-                              <Button type="submit">Registrar Loja</Button>
+                              <Button onClick={handleSubmit} type="submit">Registrar Loja</Button>
                               <Button onClick={handleExit}>Voltar para página incial</Button>
                         </FormContainer>
                   </Page>

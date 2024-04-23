@@ -241,20 +241,34 @@ function Home() {
   const navigate = useNavigate();
   const { storeId } = useParams();
   const { userId } = useParams();
+  const [stores, setStores] = useState([]);
+  const [services, setServices] = useState([]);
 
-  // Encontrar a loja com o ID correspondente ao fornecido na URL
-  const store = stores.find(store => store.id === parseInt(storeId));
 
-  if (!store) {
-    return <Page>
-      <Title>Loja não encontrada!</Title>
-    </Page>;
-  }
+  useEffect(() => {
+    fetch(`http://localhost:6789/stores/${storeId}`, {
+      method: 'GET',
+      mode: 'cors'
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        setStores(data);
+        console.log("executed", data);
+      })
+      .catch(error => {
+        console.error('Error fetching store details:', error);
+      });
+  }, [storeId]);
 
   const handleServiceClick = (serviceId) => {
     navigate(`/HomePage/store/${storeId}/ServicePage/${serviceId}`);
   };
-  
+
 
   const scrollToServices = () => {
     const servicesSection = document.getElementById('services');
@@ -264,39 +278,43 @@ function Home() {
   return (
     <Page style={{ height: 'auto' }}>
       <Capa src="/capa.jpg" alt="Barber Book Capa" />
-      <Content key={store.id}>
+      <Content key={stores ? stores.id : null}>
         <ImgProfileWrapper>
           <ImgProfile src="/profile.svg" alt="Barber Book Logo" />
         </ImgProfileWrapper>
-        <Title>{store.title}</Title>
+        <Title>{stores ? stores.title : ''}</Title>
         <SecondTitle>BARBERSHOP</SecondTitle>
         <BtnSchedule onClick={scrollToServices}>AGENDAR HORÁRIO</BtnSchedule>
         <DivService id="services">
           <H_1>Selecione o Serviço</H_1>
-          {store.services.map(service => (
-            <Service key={service.id} onClick={() => handleServiceClick(service.id)}>
-              <ServiceText>{service.title}</ServiceText>
-              <ServicePrice>R$ {service.price.toFixed(2)}</ServicePrice>
-            </Service>
-          ))}
+          {services.length > 0 ? (
+            services.map(service => (
+              <Service key={service.id} onClick={() => handleServiceClick(service.id)}>
+                <ServiceText>{service.title}</ServiceText>
+                <ServicePrice>R$ {service.price.toFixed(2)}</ServicePrice>
+              </Service>
+            ))
+          ) : (
+            <SecondTitle>Sem serviços disponíveis</SecondTitle>
+          )}
         </DivService>
 
         <H_1>Localização</H_1>
         <Location>
-          <a href={store.locationUrl} target="_blank"><LocationImage src="/location.png" alt="Location" /></a>
+          <a href={stores.locationUrl} target="_blank"><LocationImage src="/location.png" alt="Location" /></a>
         </Location>
-        <Adress style={adressStyle}>{store.address}</Adress>
-        <Number>{store.phoneNumber}</Number>
+        <Adress style={adressStyle}>{stores.address}</Adress>
+        <Number>{stores.phoneNumber}</Number>
 
         <SocialContainer>
           <H_1>Redes Sociais</H_1>
           <SocialMedia>
             <WhatsAppIcon />
-            <Adress>{store.whatsapp}</Adress>
+            <Adress>{stores.whatsapp}</Adress>
           </SocialMedia>
           <SocialMedia style={{ marginBottom: "100px" }}>
             <InstagramIcon />
-            <Adress>{store.instagram}</Adress>
+            <Adress>{stores.instagram}</Adress>
           </SocialMedia>
         </SocialContainer>
 
@@ -304,7 +322,7 @@ function Home() {
 
       <FooterFixed>
         <Button>
-          <FaceIcon style={{ width: '1.4em', height: '1.4em' }} onClick={() => navigate(`/HomePage/store/${store.id}/VisagismPage/${userId}`)} />
+          <FaceIcon style={{ width: '1.4em', height: '1.4em' }} onClick={() => navigate(`/HomePage/store/${stores.id}/VisagismPage/${userId}`)} />
         </Button>
         <PaddingButton>
           <Button style={{ color: 'var(--secondary)' }} onClick={scrollToServices}>
@@ -312,7 +330,7 @@ function Home() {
           </Button>
         </PaddingButton>
         <Button>
-          <PermIdentityIcon style={{ width: '1.4em', height: '1.4em' }} onClick={() => navigate(`/HomePage/store/${store.id}/MyAccount/${userId}`)} />
+          <PermIdentityIcon style={{ width: '1.4em', height: '1.4em' }} onClick={() => navigate(`/HomePage/store/${stores.id}/MyAccount/${userId}`)} />
         </Button>
       </FooterFixed>
     </Page>

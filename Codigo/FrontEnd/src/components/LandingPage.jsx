@@ -288,7 +288,6 @@ function LandingPage() {
     })
     .then(data => {
       setStores(data);
-      console.log("executed", data);
     })
     .catch(error => {
       console.error('Error fetching barber shops:', error);
