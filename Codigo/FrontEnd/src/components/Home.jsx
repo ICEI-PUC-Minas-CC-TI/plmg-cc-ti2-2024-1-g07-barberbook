@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Page from "./Page";
 import styled from "styled-components";
 import "../assets/css/index.css";
-import stores from "../assets/js/store";
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import FaceIcon from '@mui/icons-material/Face'
@@ -243,9 +242,10 @@ function Home() {
   const { userId } = useParams();
   const [stores, setStores] = useState([]);
   const [services, setServices] = useState([]);
-
+  const [filteredServices, setFilteredServices] = useState([]);
 
   useEffect(() => {
+    // Fetch para obter os detalhes da loja
     fetch(`http://localhost:6789/stores/${storeId}`, {
       method: 'GET',
       mode: 'cors'
@@ -258,17 +258,39 @@ function Home() {
       })
       .then(data => {
         setStores(data);
-        console.log("executed", data);
       })
       .catch(error => {
         console.error('Error fetching store details:', error);
       });
+  
+    // Fetch para obter a lista de serviços
+    fetch(`http://localhost:6789/services/list/1`, {
+      method: 'GET',
+      mode: 'cors'
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        setServices(data);
+        console.log("Services fetched:", data);
+      })
+      .catch(error => {
+        console.error('Error fetching services:', error);
+      });
   }, [storeId]);
-
+  
+  useEffect(() => {
+    const filtered = services.filter(service => service.storeId === parseInt(storeId));
+    setFilteredServices(filtered);
+  }, [services, storeId]);
+  
   const handleServiceClick = (serviceId) => {
     navigate(`/HomePage/store/${storeId}/ServicePage/${serviceId}`);
   };
-
 
   const scrollToServices = () => {
     const servicesSection = document.getElementById('services');
@@ -287,8 +309,8 @@ function Home() {
         <BtnSchedule onClick={scrollToServices}>AGENDAR HORÁRIO</BtnSchedule>
         <DivService id="services">
           <H_1>Selecione o Serviço</H_1>
-          {services.length > 0 ? (
-            services.map(service => (
+          {filteredServices.length > 0 ? (
+            filteredServices.map(service => (
               <Service key={service.id} onClick={() => handleServiceClick(service.id)}>
                 <ServiceText>{service.title}</ServiceText>
                 <ServicePrice>R$ {service.price.toFixed(2)}</ServicePrice>

@@ -2,11 +2,12 @@ package App;
 import static spark.Spark.*;
 import service.StoresService;
 import service.ServiceService;
+import service.UsersService;
 
 public class Application {
     private static StoresService storesService = new StoresService();
     private static ServiceService serviceService = new ServiceService();
-
+    private static UsersService UsersService = new UsersService();
     public static void main(String[] args) {
         port(6789);
         staticFiles.location("/public");
@@ -43,5 +44,11 @@ public class Application {
         get("/services/list/:orderby", (request, response) -> serviceService.getAll(request, response));
         get("/services/delete/:id", (request, response) -> serviceService.delete(request, response));
         post("/services/update/:id", (request, response) -> serviceService.update(request, response));
+
+
+        post("/users/insert", (request, response) -> UsersService.insert(request, response));
+        get("/users/:id", (request, response) -> UsersService.get(request, response)); 
+        put("/users/update/:id", (request, response) -> UsersService.update(request, response));
+        get("/users/delete/:id", (request, response) -> UsersService.delete(request, response)); 
     }
 }

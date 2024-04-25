@@ -311,7 +311,6 @@ function LandingPage() {
 
   const handleStoreClick = (store) => {
     navigate(`/HomePage/store/${store.id}`);
-    console.log("Selected store:", store);
   };
 
 

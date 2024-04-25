@@ -143,12 +143,14 @@ function ServicePage() {
       navigate(`/HomePage/store/${storeId}`);
     }
 
-    const foundService = stores.flatMap(store => store.services).find(service => service.id === parseInt(serviceId));
-    if (foundService) {
-      setService(foundService);
-    } else {
-      console.error('Serviço não encontrado');
-    }
+    fetch(`http://localhost:6789/services/${serviceId}`)
+      .then(response => response.json())
+      .then(data => {
+        setService(data);
+      })
+      .catch(error => {
+        console.error('Erro ao buscar serviço:', error);
+      });
   }, [storeId, serviceId]);
 
   const handleServiceSelection = (foundService) => {
