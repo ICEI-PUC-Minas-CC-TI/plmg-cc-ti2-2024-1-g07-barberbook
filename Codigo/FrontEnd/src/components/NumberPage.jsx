@@ -185,6 +185,7 @@ const AdressBold = styled(Adress)`
 function NumberPage() {
   const navigate = useNavigate();
   const { storeId, userId } = useParams();
+  const parsedStoreId = parseInt(storeId); // Convert storeId to integer
   const [users, setUsers] = useState([]);
   const [number, setNumber] = useState("");
   const [name, setName] = useState("");
@@ -196,35 +197,125 @@ function NumberPage() {
   const [testedPassword, setTestedPassword] = useState(false);
   const [save, setSave] = useState(true);
   const [next, setNext] = useState(true);
-  const store = stores.find(store => store.id === parseInt(storeId));
+  const store = stores.find(store => store.id === parsedStoreId);
 
   useEffect(() => {
     if (store) {
       setUsers(store.users || []);
     }
     if (localStorage.getItem("currentUser")) {
-      navigate(`/HomePage/store/${storeId}/MyAccount/${userId}`);
+      navigate(`/HomePage/store/${parsedStoreId}/MyAccount/${userId}`);
     }
-  }, [store, storeId]);
+  }, [store, parsedStoreId]);
 
   const handleNext = () => {
-    // proxima etapa
-  };
-
-  const handleTestPassword = () => {
-   // testar senha
+    fetch(`http://localhost:6789/users/test/${number}/${parsedStoreId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.result === 1) {
+          setNumberSaved(true);
+          setSave(true);
+          setOk(true);
+          setNext(false);
+        } else if (data.result === 0) {
+          setNumberSaved(false);
+          setSave(false);
+          setOk(true);
+          setNext(false);
+        } else {
+          setErrorMessage('Ocorreu um erro ao processar sua solicitação. Por favor, tente novamente mais tarde.');
+          setShowModal(true);
+        }
+      })
+      .catch(error => {
+        setErrorMessage('Ocorreu um erro ao processar sua solicitação. Por favor, tente novamente mais tarde.');
+        setShowModal(true);
+      });
   };
   
-
-  const handleSave = () => {
-    // salvar usuario
+  
+  const handleTestPassword = () => {
+    const data = {
+      phoneNumber: number,
+      password: password
+    };
+  
+    fetch(`http://localhost:6789/users/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    })
+      .then(response => response.json())
+      .then(data => {
+       if(data.result === 1){
+         localStorage.setItem("currentUser", JSON.stringify(data.user));
+         navigate(`/HomePage/store/${parsedStoreId}/MyAccount/${data.user.id}`);
+      } else {
+        setErrorMessage('Senha incorreta');
+        setShowModal(true);
+      }
+      })
+      .catch(error => {
+        // Handle request errors
+        console.error('Erro ao enviar solicitação:', error);
+      });
   };
+  
+  const handleSave = () => {
+    // Convert password to bytes using the same hashing logic as the backend
+    const passwordBytes = new TextEncoder().encode(password);
+  
+    // Prepare user data
+    const userData = {
+      store_id: parsedStoreId,
+      name: name,
+      phone_number: number,
+      password_hash: Array.from(passwordBytes)
+    };
+  
+    // Construct query params string
+    const queryParams = new URLSearchParams(userData).toString();
+  
+    // Send user data to the API with query params
+    fetch(`http://localhost:6789/users/insert?${queryParams}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => {
+      if (response.ok) {
+        // Handle successful user save
+        setErrorMessage('Usuário salvo com sucesso');
+        setShowModal(true);
+        navigate(`/HomePage/store/${parsedStoreId}/MyAccount/${userId}`);
+      } else {
+        // Handle failed user save
+        throw new Error('Erro ao salvar usuário');
+      }
+    })
+    .catch(error => {
+      // Handle request errors
+      console.error('Erro ao salvar usuário:', error);
+      // Show an error message to the user, if necessary
+      setErrorMessage('Erro ao salvar usuário. Por favor, tente novamente mais tarde.');
+      setShowModal(true);
+    });
+  };
+  
 
   return (
     <Page>
       <Header>
         <H1>Cadastro</H1>
-        <Exit onClick={() => navigate(`/HomePage/store/${storeId}`)}>X</Exit>
+        <Exit onClick={() => navigate(`/HomePage/store/${parsedStoreId}`)}>X</Exit>
       </Header>
       <DivService>
         <Service>

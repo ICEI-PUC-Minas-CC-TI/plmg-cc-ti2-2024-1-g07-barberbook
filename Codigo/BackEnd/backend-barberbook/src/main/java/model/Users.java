@@ -5,25 +5,19 @@ public class Users {
     private int storeId;
     private String type;
     private String name;
-    private String phone_number;
+    private String phoneNumber;
     private byte[] password_hash;
 
     public Users() {
-        id = -1;
-        storeId = -1;
-        type = "";
-        name = "";
-        phone_number = "";
-        password_hash = new byte[0];
     }
 
-    public Users(int id, int storeId, String type, String name, String phone_number, byte[] password_hash) {
+    public Users(int id, int storeId, String type, String name, String phoneNumber, byte[] password_hash) {
         setId(id);
         setStoreId(storeId);
         setType(type);
         setName(name);
-        setPhoneNumber(phone_number);
-        setPassword_hash(password_hash);
+        setPhoneNumber(phoneNumber);
+        setPasswordHash(password_hash);
     }
 
     public int getId() {
@@ -31,7 +25,9 @@ public class Users {
     }
 
     public void setId(int id) {
-        this.id = id;
+        if (id > 0) {
+            this.id = id;
+        }
     }
 
     public int getStoreId() {
@@ -39,7 +35,9 @@ public class Users {
     }
 
     public void setStoreId(int storeId) {
-        this.storeId = storeId;
+        if (storeId > 0) {
+            this.storeId = storeId;
+        }
     }
 
     public String getType() {
@@ -59,18 +57,19 @@ public class Users {
     }
 
     public String getPhoneNumber() {
-        return phone_number;
+        return phoneNumber;
     }
 
-    public void setPhoneNumber(String phone_number) {
-        this.phone_number = phone_number;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
-    public byte[] getPassword_hash() {
+
+    public byte[] getPasswordHash() {
         return password_hash;
     }
 
-    public void setPassword_hash(byte[] password_hash) {
-        this.password_hash = password_hash;
+    public void setPasswordHash(byte[] passwordHash) {
+        this.password_hash = passwordHash;
     }
 }
