@@ -135,21 +135,25 @@ const Next = styled(Back)`
 `;
 
 function AdditionalService() {
-  const { storeId, serviceId } = useParams(); // Obter serviceId da URL
+  const { storeId, serviceId } = useParams();
   const navigate = useNavigate();
-  const [store, setStore] = useState(null);
   const [additionalServices, setAdditionalServices] = useState([]);
 
   useEffect(() => {
-    const foundStore = stores.find(store => store.id === parseInt(storeId));
-    if (foundStore) {
-      setStore(foundStore);
-      const storeServices = foundStore.additionalServices;
-      setAdditionalServices(storeServices);
-    } else {
-      console.error('Loja não encontrada');
-      navigate(`/HomePage/store/${storeId}`);
-    }
+    fetch(`http://localhost:6789/addservice/store/${storeId}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to fetch additional services');
+        }
+        return response.json();
+      })
+      .then(data => {
+        setAdditionalServices(data);
+      })
+      .catch(error => {
+        console.error('Error fetching additional services:', error);
+        // Handle error (e.g., show error message)
+      });
   }, [storeId]);
 
   const handleServiceSelection = (service) => {

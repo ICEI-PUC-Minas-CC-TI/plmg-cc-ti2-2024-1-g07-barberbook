@@ -279,7 +279,7 @@ function Home() {
         setError('Error fetching store details');
       });
 
-    fetch(`http://localhost:6789/services/list/1`, {
+    fetch(`http://localhost:6789/services/store/${storeId}`, {
       method: 'GET',
       mode: 'cors'
     })

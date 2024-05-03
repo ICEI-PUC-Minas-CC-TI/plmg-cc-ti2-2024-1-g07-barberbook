@@ -211,6 +211,8 @@ function MyAcc() {
   const [errorMessage, setErrorMessage] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [services, setServices] = useState([]);
+  const [additionalServices, setAdditionalServices] = useState([]);
+  const [viewingAdditionalServices, setViewingAdditionalServices] = useState(false); // Estado para determinar se estamos visualizando serviços adicionais
   const currentUser = JSON.parse(localStorage.getItem("currentUser"));
 
   useEffect(() => {
@@ -266,10 +268,11 @@ function MyAcc() {
 
   const handleViewServices = async () => {
     try {
-      const response = await fetch(`http://localhost:6789/services/list/${storeId}`);
+      const response = await fetch(`http://localhost:6789/services/store/${storeId}`);
       const serviceData = await response.json();
       setServices(serviceData);
       setShowModal(true);
+      setViewingAdditionalServices(false); // Defina para falso para visualizar os serviços principais
     } catch (error) {
       console.error('Error fetching services data:', error);
       setErrorMessage('Failed to fetch services data. Please try again later.');
@@ -280,6 +283,25 @@ function MyAcc() {
       }, 2500);
     }
   };
+
+  const handleViewAdditionalServices = async () => {
+    try {
+      const response = await fetch(`http://localhost:6789/addservice/store/${storeId}`);
+      const serviceData = await response.json();
+      console.log(serviceData);
+      setAdditionalServices(serviceData);
+      setShowModal(true);
+      setViewingAdditionalServices(true); // Defina para verdadeiro para visualizar os serviços adicionais
+    } catch (error) {
+      console.error('Error fetching additional services data:', error);
+      setErrorMessage('Failed to fetch additional services data. Please try again later.');
+      setShowModal(true);
+      setTimeout(() => {
+        setShowModal(false);
+        setErrorMessage("");
+      }, 2500);
+    }
+  }
 
   const handleDeleteService = async (serviceId) => {
     try {
@@ -323,6 +345,7 @@ function MyAcc() {
                     <Button onClick={handleAddService}>Adicionar Serviços</Button>
                     <Button onClick={handleViewServices}>Visualizar Serviços</Button>
                     <Button onClick={handleAddAdditionalService}>Adicionar Serviços Adicionais</Button>
+                    <Button onClick={handleViewAdditionalServices}>Visualizar Serviços Adicionais</Button>
                   </>
                 ) : (
                   <>
@@ -338,13 +361,22 @@ function MyAcc() {
                 <ModalBackground onClick={() => setShowModal(false)}>
                   <ModalDiv>
                     <ModalServiceList>
-                      <H_2>Serviços</H_2>
-                      {services.map(service => (
-                        <ServiceItem key={service.id}>
-                          <ServiceName>{service.title}</ServiceName>
-                          <DeleteIcon onClick={() => handleDeleteService(service.id)}>❌</DeleteIcon>
-                        </ServiceItem>
-                      ))}
+                      <H_2>{viewingAdditionalServices ? "Serviços Adicionais" : "Serviços"}</H_2>
+                      {viewingAdditionalServices ? (
+                        additionalServices.map(service => (
+                          <ServiceItem key={service.id}>
+                            <ServiceName>{service.title}</ServiceName>
+                            <DeleteIcon onClick={() => handleDeleteService(service.id)}>❌</DeleteIcon>
+                          </ServiceItem>
+                        ))
+                      ) : (
+                        services.map(service => (
+                          <ServiceItem key={service.id}>
+                            <ServiceName>{service.title}</ServiceName>
+                            <DeleteIcon onClick={() => handleDeleteService(service.id)}>❌</DeleteIcon>
+                          </ServiceItem>
+                        ))
+                      )}
                     </ModalServiceList>
                   </ModalDiv>
                 </ModalBackground>
@@ -356,4 +388,4 @@ function MyAcc() {
     </>
   );
 }
-export default MyAcc;  
+export default MyAcc;
