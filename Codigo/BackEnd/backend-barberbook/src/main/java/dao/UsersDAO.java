@@ -1,18 +1,14 @@
 package dao;
 
 import model.Users;
-
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
-import org.mindrot.jbcrypt.BCrypt;
+import java.util.Map;
 
 public class UsersDAO extends DAO {
+
     public UsersDAO() {
         super();
         conectar();
@@ -22,21 +18,21 @@ public class UsersDAO extends DAO {
         close();
     }
 
-    public Users insert(Users user) {
+    public Users insert(Map<String, String> userData) {
         try {
-            String phoneNumberWithHyphen = addHyphenToPhoneNumber(user.getPhoneNumber());
+            Users user = new Users();
+            String phoneNumberWithHyphen = addHyphenToPhoneNumber(userData.get("phone_number"));
 
             PreparedStatement stmt = conexao.prepareStatement(
-                    "INSERT INTO users (store_id, name, type, phone_number, password_hash) VALUES (?, ?, ?, ?, ?)",
+                    "INSERT INTO users (store_id, type, name, phone_number, password_hash) VALUES (?, ?, ?, ?, ?)",
                     Statement.RETURN_GENERATED_KEYS);
-            stmt.setInt(1, user.getStoreId());
-            stmt.setString(2, user.getName());
-            stmt.setString(3, user.getType());
+            stmt.setInt(1, Integer.parseInt(userData.get("store_id")));
+            stmt.setString(2, userData.get("type"));
+            stmt.setString(3, userData.get("name"));
             stmt.setString(4, phoneNumberWithHyphen);
-            stmt.setBytes(5, user.getPasswordHash());
+            stmt.setString(5, userData.get("password_hash"));
             stmt.executeUpdate();
 
-            System.out.println(stmt.toString());
             ResultSet rs = stmt.getGeneratedKeys();
             int generatedId = -1;
             if (rs.next()) {
@@ -58,11 +54,12 @@ public class UsersDAO extends DAO {
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 int storeId = rs.getInt("store_id");
-                String name = rs.getString("name");
                 String type = rs.getString("type");
+                String name = rs.getString("name");
+
                 String phone_number = rs.getString("phone_number");
-                byte[] password_hash = rs.getBytes("password_hash");
-                user = new Users(id, storeId, name, type, phone_number, password_hash);
+                String password_hash = rs.getString("password_hash"); // Alterado para String
+                user = new Users(id, storeId, type, name, phone_number, password_hash);
             }
             stmt.close();
             return user;
@@ -70,29 +67,6 @@ public class UsersDAO extends DAO {
             throw new RuntimeException(e);
         }
     }
-    /*
-     * public List<Users> getAll() {
-     * List<Users> userList = new ArrayList<>();
-     * try {
-     * PreparedStatement stmt = conexao.prepareStatement("SELECT * FROM users");
-     * ResultSet rs = stmt.executeQuery();
-     * while (rs.next()) {
-     * int id = rs.getInt("id");
-     * int storeId = rs.getInt("store_id");
-     * String name = rs.getString("name");
-     * String type = rs.getString("type");
-     * String phone_number = rs.getString("phone_number");
-     * byte[] password_hash = rs.getBytes("password_hash");
-     * Users user = new Users(id, storeId, name, type, phone_number, password_hash);
-     * userList.add(user);
-     * }
-     * stmt.close();
-     * } catch (Exception e) {
-     * throw new RuntimeException(e);
-     * }
-     * return userList;
-     * }
-     */
 
     public Users delete(int id) {
         try {
@@ -113,12 +87,12 @@ public class UsersDAO extends DAO {
     public Users update(Users user) {
         try {
             PreparedStatement stmt = conexao.prepareStatement(
-                    "UPDATE users SET store_id = ?, name = ?, type = ?, phone_number = ?, password_hash = ?::bytea WHERE id = ?");
+                    "UPDATE users SET store_id = ?, name = ?, type = ?, phone_number = ?, password_hash = ? WHERE id = ?");
             stmt.setInt(1, user.getStoreId());
             stmt.setString(2, user.getName());
             stmt.setString(3, user.getType());
             stmt.setString(4, user.getPhoneNumber());
-            stmt.setBytes(5, user.getPasswordHash());
+            stmt.setString(5, user.getPasswordHash()); // Alterado para String
             stmt.setInt(6, user.getId());
             int rowsUpdated = stmt.executeUpdate();
             stmt.close();
@@ -144,8 +118,6 @@ public class UsersDAO extends DAO {
             ResultSet rs = stmt.executeQuery();
 
             boolean exists = rs.next();
-            System.out.println(stmt.toString());
-            System.out.println(exists);
             return exists;
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -168,6 +140,31 @@ public class UsersDAO extends DAO {
                     phoneNumber.substring(3, 7) + "-" + phoneNumber.substring(7);
         }
         return phoneNumber;
+    }
+
+    public Users login(String phoneNumber, String passwordHash, int storeId) { // Alterado para String
+        Users user = null;
+        try {
+            phoneNumber = addHyphenToPhoneNumber(phoneNumber);
+
+            PreparedStatement stmt = conexao
+                    .prepareStatement("SELECT * FROM users WHERE phone_number = ? AND store_id = ?");
+            stmt.setString(1, phoneNumber);
+            stmt.setInt(2, storeId);
+
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                int id = rs.getInt("id");
+                String type = rs.getString("type");
+                String name = rs.getString("name");
+                String retrievedPasswordHash = rs.getString("password_hash"); // Alterado para String
+                user = new Users(id, storeId, name, type, phoneNumber, retrievedPasswordHash);
+            }
+            stmt.close();
+            return user;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

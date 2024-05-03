@@ -6,18 +6,18 @@ public class Users {
     private String type;
     private String name;
     private String phoneNumber;
-    private byte[] password_hash;
+    private String passwordHash;
 
     public Users() {
     }
 
-    public Users(int id, int storeId, String type, String name, String phoneNumber, byte[] password_hash) {
+    public Users(int id, int storeId, String type, String name, String phoneNumber, String passwordHash) {
         setId(id);
         setStoreId(storeId);
         setType(type);
         setName(name);
         setPhoneNumber(phoneNumber);
-        setPasswordHash(password_hash);
+        setPasswordHash(passwordHash);
     }
 
     public int getId() {
@@ -64,12 +64,11 @@ public class Users {
         this.phoneNumber = phoneNumber;
     }
 
-
-    public byte[] getPasswordHash() {
-        return password_hash;
+    public String getPasswordHash() {
+        return passwordHash;
     }
 
-    public void setPasswordHash(byte[] passwordHash) {
-        this.password_hash = passwordHash;
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
     }
 }

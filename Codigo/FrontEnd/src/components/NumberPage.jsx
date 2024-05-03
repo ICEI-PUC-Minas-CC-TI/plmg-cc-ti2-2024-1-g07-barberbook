@@ -177,16 +177,12 @@ const Adress = styled.div`
   margin: 2px 0;
 `;
 
-const AdressBold = styled(Adress)`
-  font-weight: 700;
-`;
 
 
 function NumberPage() {
   const navigate = useNavigate();
-  const { storeId, userId } = useParams();
-  const parsedStoreId = parseInt(storeId); // Convert storeId to integer
-  const [users, setUsers] = useState([]);
+  const { storeId } = useParams();
+  const parsedStoreId = parseInt(storeId);
   const [number, setNumber] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
@@ -194,19 +190,9 @@ function NumberPage() {
   const [showModal, setShowModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [ok, setOk] = useState(false);
-  const [testedPassword, setTestedPassword] = useState(false);
   const [save, setSave] = useState(true);
   const [next, setNext] = useState(true);
-  const store = stores.find(store => store.id === parsedStoreId);
-
-  useEffect(() => {
-    if (store) {
-      setUsers(store.users || []);
-    }
-    if (localStorage.getItem("currentUser")) {
-      navigate(`/HomePage/store/${parsedStoreId}/MyAccount/${userId}`);
-    }
-  }, [store, parsedStoreId]);
+  const currentUser = JSON.parse(localStorage.getItem('currentUser'));
 
   const handleNext = () => {
     fetch(`http://localhost:6789/users/test/${number}/${parsedStoreId}`, {
@@ -237,79 +223,83 @@ function NumberPage() {
         setShowModal(true);
       });
   };
-  
-  
+
   const handleTestPassword = () => {
-    const data = {
-      phoneNumber: number,
-      password: password
+    const userData = {
+      store_id: parsedStoreId,
+      phone_number: number,
+      password_hash: password
     };
-  
-    fetch(`http://localhost:6789/users/login`, {
+
+    const queryParams = new URLSearchParams(userData).toString();
+    fetch(`http://localhost:6789/users/login?${queryParams}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data)
-    })
-      .then(response => response.json())
-      .then(data => {
-       if(data.result === 1){
-         localStorage.setItem("currentUser", JSON.stringify(data.user));
-         navigate(`/HomePage/store/${parsedStoreId}/MyAccount/${data.user.id}`);
-      } else {
-        setErrorMessage('Senha incorreta');
-        setShowModal(true);
       }
+    })
+      .then(response => {
+        if (response.status === 200) {
+          return response.json();
+        } else {
+          setErrorMessage('Senha incorreta');
+          setShowModal(true);
+          throw new Error('Senha incorreta');
+        }
       })
+      .then(data => {
+        if (data.user === "Autenticado") {
+          data.logged = true; 
+          const userId = data.id;
+          localStorage.setItem("currentUser", JSON.stringify(data));
+          navigate(`/HomePage/store/${parsedStoreId}/MyAccount/${userId}`);
+        } else {
+          setErrorMessage('Senha incorreta');
+          setShowModal(true);
+        }
+      })
+      
       .catch(error => {
-        // Handle request errors
         console.error('Erro ao enviar solicitação:', error);
       });
   };
-  
+
   const handleSave = () => {
-    // Convert password to bytes using the same hashing logic as the backend
-    const passwordBytes = new TextEncoder().encode(password);
-  
-    // Prepare user data
     const userData = {
       store_id: parsedStoreId,
       name: name,
       phone_number: number,
-      password_hash: Array.from(passwordBytes)
+      password_hash: password
     };
-  
-    // Construct query params string
+    console.log(userData);
     const queryParams = new URLSearchParams(userData).toString();
-  
-    // Send user data to the API with query params
     fetch(`http://localhost:6789/users/insert?${queryParams}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       }
     })
-    .then(response => {
-      if (response.ok) {
-        // Handle successful user save
+      .then(response => {
+        if (response.status === 201) {
+          return response.json();
+        } else {
+          throw new Error('Erro ao salvar usuário');
+        }
+      })
+      .then(data => {
+        data.logged = true;
+        localStorage.setItem('currentUser', JSON.stringify(data));
+
         setErrorMessage('Usuário salvo com sucesso');
         setShowModal(true);
-        navigate(`/HomePage/store/${parsedStoreId}/MyAccount/${userId}`);
-      } else {
-        // Handle failed user save
-        throw new Error('Erro ao salvar usuário');
-      }
-    })
-    .catch(error => {
-      // Handle request errors
-      console.error('Erro ao salvar usuário:', error);
-      // Show an error message to the user, if necessary
-      setErrorMessage('Erro ao salvar usuário. Por favor, tente novamente mais tarde.');
-      setShowModal(true);
-    });
+        navigate(`/HomePage/store/${parsedStoreId}/MyAccount/${data.id}`);
+      })
+      .catch(error => {
+        console.error('Erro ao salvar usuário:', error);
+        setErrorMessage('Erro ao salvar usuário. Por favor, tente novamente mais tarde.');
+        setShowModal(true);
+      });
   };
-  
 
   return (
     <Page>

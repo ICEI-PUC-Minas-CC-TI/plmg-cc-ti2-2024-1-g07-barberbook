@@ -8,6 +8,7 @@ import InstagramIcon from '@mui/icons-material/Instagram';
 import FaceIcon from '@mui/icons-material/Face'
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import PermIdentityIcon from '@mui/icons-material/PermIdentity';
+import ClipLoader from "react-spinners/ClipLoader";
 
 const Capa = styled.img`
   width: 100%;
@@ -21,11 +22,10 @@ const Capa = styled.img`
 const Content = styled.div`
   max-width: 420px;
   min-width: 320px;
-  min-height: 100%;
+  min-height: 100svh;
   background-color: var(--primary);
   display: flex;
   flex-direction: column;
-  border-radius: 30px 30px 0 0;
   position: relative;
 `;
 
@@ -165,6 +165,7 @@ const Adress = styled.div`
   font-weight: 400;
   line-height: normal;
   text-align: center;
+  padding: 0 10px;
 `;
 
 const Number = styled.div`
@@ -236,16 +237,30 @@ const PaddingButton = styled.div`
   }
 `;
 
+const LoadingContainerStyles = styled.div`
+  width: 100vw; 
+  height: 100vh; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.8);
+  z-index: 999; 
+`;
+
 function Home() {
   const navigate = useNavigate();
   const { storeId } = useParams();
-  const { userId } = useParams();
   const [stores, setStores] = useState([]);
   const [services, setServices] = useState([]);
   const [filteredServices, setFilteredServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null); 
+  const storedUser = JSON.parse(localStorage.getItem('currentUser'));
 
   useEffect(() => {
-    // Fetch para obter os detalhes da loja
+    setLoading(true);
+    setError(null);
+
     fetch(`http://localhost:6789/stores/${storeId}`, {
       method: 'GET',
       mode: 'cors'
@@ -261,9 +276,9 @@ function Home() {
       })
       .catch(error => {
         console.error('Error fetching store details:', error);
+        setError('Error fetching store details');
       });
-  
-    // Fetch para obter a lista de serviços
+
     fetch(`http://localhost:6789/services/list/1`, {
       method: 'GET',
       mode: 'cors'
@@ -276,18 +291,15 @@ function Home() {
       })
       .then(data => {
         setServices(data);
-        console.log("Services fetched:", data);
+        setFilteredServices(data.filter(service => service.storeId === parseInt(storeId)));
+        setLoading(false);
       })
       .catch(error => {
         console.error('Error fetching services:', error);
+        setError('Error fetching services'); // Define o erro no estado
       });
   }, [storeId]);
-  
-  useEffect(() => {
-    const filtered = services.filter(service => service.storeId === parseInt(storeId));
-    setFilteredServices(filtered);
-  }, [services, storeId]);
-  
+
   const handleServiceClick = (serviceId) => {
     navigate(`/HomePage/store/${storeId}/ServicePage/${serviceId}`);
   };
@@ -299,64 +311,75 @@ function Home() {
 
   return (
     <Page style={{ height: 'auto' }}>
-      <Capa src="/capa.jpg" alt="Barber Book Capa" />
-      <Content key={stores ? stores.id : null}>
-        <ImgProfileWrapper>
-          <ImgProfile src="/profile.svg" alt="Barber Book Logo" />
-        </ImgProfileWrapper>
-        <Title>{stores ? stores.title : ''}</Title>
-        <SecondTitle>BARBERSHOP</SecondTitle>
-        <BtnSchedule onClick={scrollToServices}>AGENDAR HORÁRIO</BtnSchedule>
-        <DivService id="services">
-          <H_1>Selecione o Serviço</H_1>
-          {filteredServices.length > 0 ? (
-            filteredServices.map(service => (
-              <Service key={service.id} onClick={() => handleServiceClick(service.id)}>
-                <ServiceText>{service.title}</ServiceText>
-                <ServicePrice>R$ {service.price.toFixed(2)}</ServicePrice>
-              </Service>
-            ))
-          ) : (
-            <SecondTitle>Sem serviços disponíveis</SecondTitle>
-          )}
-        </DivService>
+      {loading ? ( 
+        <LoadingContainerStyles>
+          <ClipLoader loading={true} size={80} color={"var(--primary)"} />
+        </LoadingContainerStyles>
+      ) : error ? ( 
+        <Content>
+          <h1>Error: {error}</h1>
+        </Content>
+      ) : (
+        <>
+          <Capa src="/capa.jpg" alt="Barber Book Capa" />
+          <Content key={stores ? stores.id : null}>
+            <ImgProfileWrapper>
+              <ImgProfile src="/profile.svg" alt="Barber Book Logo" />
+            </ImgProfileWrapper>
+            <Title>{stores ? stores.title : ''}</Title>
+            <SecondTitle>BARBERSHOP</SecondTitle>
+            <BtnSchedule onClick={scrollToServices}>AGENDAR HORÁRIO</BtnSchedule>
+            <DivService id="services">
+              <H_1>Selecione o Serviço</H_1>
+              {filteredServices.length > 0 ? (
+                filteredServices.map(service => (
+                  <Service key={service.id} onClick={() => handleServiceClick(service.id)}>
+                    <ServiceText>{service.title}</ServiceText>
+                    <ServicePrice>R$ {service.price.toFixed(2)}</ServicePrice>
+                  </Service>
+                ))
+              ) : (
+                <SecondTitle>Sem serviços disponíveis</SecondTitle>
+              )}
+            </DivService>
 
-        <H_1>Localização</H_1>
-        <Location>
-          <a href={stores.locationUrl} target="_blank"><LocationImage src="/location.png" alt="Location" /></a>
-        </Location>
-        <Adress style={adressStyle}>{stores.address}</Adress>
-        <Number>{stores.phoneNumber}</Number>
+            <H_1>Localização</H_1>
+            <Location>
+              <a href={stores.locationUrl} target="_blank"><LocationImage src="/location.png" alt="Location" /></a>
+            </Location>
+            <Adress style={adressStyle}>{stores.address}</Adress>
+            <Number>{stores.phoneNumber}</Number>
 
-        <SocialContainer>
-          <H_1>Redes Sociais</H_1>
-          <SocialMedia>
-            <WhatsAppIcon />
-            <Adress>{stores.whatsapp}</Adress>
-          </SocialMedia>
-          <SocialMedia style={{ marginBottom: "100px" }}>
-            <InstagramIcon />
-            <Adress>{stores.instagram}</Adress>
-          </SocialMedia>
-        </SocialContainer>
+            <SocialContainer>
+              <H_1>Redes Sociais</H_1>
+              <SocialMedia>
+                <WhatsAppIcon />
+                <Adress>{stores.whatsapp}</Adress>
+              </SocialMedia>
+              <SocialMedia style={{ marginBottom: "100px" }}>
+                <InstagramIcon />
+                <Adress>{stores.instagram}</Adress>
+              </SocialMedia>
+            </SocialContainer>
 
-      </Content>
+          </Content>
 
-      <FooterFixed>
-        <Button>
-          <FaceIcon style={{ width: '1.4em', height: '1.4em' }} onClick={() => navigate(`/HomePage/store/${stores.id}/VisagismPage/${userId}`)} />
-        </Button>
-        <PaddingButton>
-          <Button style={{ color: 'var(--secondary)' }} onClick={scrollToServices}>
-            <CalendarMonthIcon style={{ width: '1.4em', height: '1.4em' }} />
-          </Button>
-        </PaddingButton>
-        <Button>
-          <PermIdentityIcon style={{ width: '1.4em', height: '1.4em' }} onClick={() => navigate(`/HomePage/store/${stores.id}/MyAccount/${userId}`)} />
-        </Button>
-      </FooterFixed>
+          <FooterFixed>
+            <Button>
+              <FaceIcon style={{ width: '1.4em', height: '1.4em' }} onClick={() => navigate(`/HomePage/store/${stores.id}/VisagismPage/${storedUser.id}`)} />
+            </Button>
+            <PaddingButton>
+              <Button style={{ color: 'var(--secondary)' }} onClick={scrollToServices}>
+                <CalendarMonthIcon style={{ width: '1.4em', height: '1.4em' }} />
+              </Button>
+            </PaddingButton>
+            <Button>
+              <PermIdentityIcon style={{ width: '1.4em', height: '1.4em' }} onClick={() => storedUser ? navigate(`/HomePage/store/${stores.id}/MyAccount/${storedUser.id}`) : navigate(`/HomePage/store/${stores.id}/NumberPage`)} />
+            </Button>
+          </FooterFixed>
+        </>
+      )}
     </Page>
   );
 }
-
 export default Home;

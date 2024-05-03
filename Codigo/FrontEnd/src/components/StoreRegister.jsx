@@ -95,10 +95,6 @@ function capitalizeFirstLetter(string) {
       return words.join(" ");
 }
 
-function isValidEmail(email) {
-      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return emailPattern.test(email);
-}
 
 function StoreRegister() {
       const navigate = useNavigate();
@@ -112,6 +108,7 @@ function StoreRegister() {
       const [isValidEmailInput, setIsValidEmailInput] = useState(true);
       const [passwordsMatch, setPasswordsMatch] = useState(true);
 
+
       const handleStoreNameChange = (event) => {
             setStoreName(capitalizeFirstLetter(event.target.value));
       };
@@ -120,11 +117,9 @@ function StoreRegister() {
             setStoreAddress(capitalizeFirstLetter(event.target.value));
       };
 
-      const handleEmailChange = (event) => {
-            const newEmail = event.target.value;
-            setEmail(newEmail);
-            setIsValidEmailInput(newEmail === '' || isValidEmail(newEmail));
-      };
+      const handlePhoneNumberChange = (event) => {
+            setPhoneNumber(event.target.value);
+      }
 
       const handlePasswordChange = (event) => {
             const newPassword = event.target.value;
@@ -139,35 +134,35 @@ function StoreRegister() {
             setConfirmPassword(event.target.value);
       };
 
+      const handleInstagramChange = (event) => {
+            setInstagram(event.target.value);
+      }
+
       const confirmPasswords = () => {
             return password === confirmPassword;
       };
 
       const handleSubmit = async (event) => {
             event.preventDefault();
-      
+
             // Validações
             if (
                   storeName === '' ||
                   storeAddress === '' ||
-                  email === '' ||
+                  phoneNumber === '' ||
+                  instagram === '' ||
                   password === '' ||
                   confirmPassword === ''
             ) {
                   alert('Por favor, preencha todos os campos corretamente.');
-                  return; 
-            }
-      
-            if (!isValidEmail(email)) {
-                  setIsValidEmailInput(false);
                   return;
             }
-      
+
             if (!confirmPasswords()) {
                   setPasswordsMatch(false);
                   return;
             }
-            
+
             try {
                   // Preparar os dados do formulário
                   const formData = new URLSearchParams();
@@ -180,7 +175,7 @@ function StoreRegister() {
                   formData.append('instagram', instagram);
 
                   console.log('Enviando os dados:', formData.toString());
-      
+
                   const response = await fetch('http://localhost:6789/stores/insert', {
                         method: 'POST',
                         headers: {
@@ -188,22 +183,46 @@ function StoreRegister() {
                         },
                         body: formData.toString(),
                   });
-      
+
                   if (response.ok) {
-                        console.log('Loja cadastrada com sucesso!');
-                        navigate(-1);
+                        const responseData = await response.json();
+                        console.log('Response:', responseData);
+                        const storeId = responseData.id; // Obtendo o store_id do response
+                        console.log('Loja cadastrada com sucesso! ID:', storeId);
+
+                        const userData = {
+                              store_id: storeId, // Utilizando o store_id obtido
+                              name: storeName,
+                              phone_number: phoneNumber,
+                              password_hash: password,
+                              type: "admin"
+                        };
+
+                        const queryParams = new URLSearchParams(userData).toString();
+                        fetch(`http://localhost:6789/users/insert?${queryParams}`, {
+                              method: 'POST',
+                              headers: {
+                                    'Content-Type': 'application/json'
+                              }
+                        }).then(response => {
+                              if (response.status === 201) {
+                                    console.log('Usuário cadastrado com sucesso!');
+                                    navigate(-1);
+                              } else {
+                                    console.error('Erro ao salvar usuário:', response.status);
+                              }
+                        });
                   } else {
                         console.error('Erro ao cadastrar a loja:', response.status);
                   }
             } catch (error) {
-                  // Tratar erros de rede ou outros erros inesperados
                   console.error('Erro ao enviar os dados:', error);
             }
       };
-      
+
 
       const handleExit = () => {
-            navigate(-1);
+            navigate('/LandingPage');
       }
 
       return (
@@ -215,16 +234,13 @@ function StoreRegister() {
                               <Label>Nome da loja</Label>
                               <Input type="text" placeholder="'Barbearia Do João'" value={storeName} onChange={handleStoreNameChange} />
                               <Label>Telefone</Label>
-                              <InputMask mask="(99) 99999-9999" maskChar="_">
+                              <InputMask mask="(99) 99999-9999" onChange={handlePhoneNumberChange} maskChar="_">
                                     {() => <Input type="text" placeholder="(99) 99999-9999" />}
                               </InputMask>
                               <Label>Endereço</Label>
                               <Input type="text" placeholder="Ex: Rua das Flores, 123 - Jardim Primavera" value={storeAddress} onChange={handleStoreAddressChange} />
                               <Label>Instagram</Label>
-                              <Input type="text" placeholder="Instagram" />
-                              <Label>Email</Label>
-                              <Input type="email" placeholder="Email" value={email} onChange={handleEmailChange} />
-                              {!isValidEmailInput && <p style={{ color: 'red' }}>Por favor, insira um e-mail válido.</p>}
+                              <Input type="text" value={instagram} onChange={handleInstagramChange} placeholder="Instagram" />
                               <Label>Senha</Label>
                               <Input type="password" placeholder="Senha" value={password} onChange={handlePasswordChange} />
                               <Label>Confirmar senha</Label>

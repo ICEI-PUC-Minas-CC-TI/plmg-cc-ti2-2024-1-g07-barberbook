@@ -1,13 +1,13 @@
 package service;
 import java.util.List;
 import com.google.gson.Gson;
-import dao.serviceDAO;
+import dao.ServiceDAO;
 import model.Service;
 import spark.Request;
 import spark.Response;
 
 public class ServiceService {
-    private serviceDAO serviceDAO = new serviceDAO();
+    private ServiceDAO serviceDAO = new ServiceDAO();
     private Gson gson = new Gson();
 
     public String insert(Request request, Response response) {
@@ -40,6 +40,22 @@ public class ServiceService {
             } else {
                 response.status(404);
                 return "{\"error\": \"No services found\"}";
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    public String getByStoreId(Request request, Response response) {
+        int storeId = Integer.parseInt(request.params(":storeId"));
+        try {
+            List<Service> serviceList = serviceDAO.getByStoreId(storeId);
+            if (!serviceList.isEmpty()) {
+                return gson.toJson(serviceList);
+            } else {
+                response.status(404);
+                return "{\"error\": \"No services found for the given store\"}";
             }
         } catch (Exception e) {
             throw new RuntimeException(e);

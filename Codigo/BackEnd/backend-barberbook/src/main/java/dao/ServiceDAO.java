@@ -7,9 +7,9 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class serviceDAO extends DAO {
+public class ServiceDAO extends DAO {
 
-      public serviceDAO() {
+      public ServiceDAO() {
             super();
             conectar();
       }
@@ -79,6 +79,27 @@ public class serviceDAO extends DAO {
             return serviceList;
       }
 
+      public List<Service> getByStoreId(int storeId) {
+            List<Service> serviceList = new ArrayList<>();
+            try {
+                PreparedStatement stmt = conexao.prepareStatement("SELECT * FROM services WHERE store_id = ?");
+                stmt.setInt(1, storeId);
+                ResultSet rs = stmt.executeQuery();
+                while (rs.next()) {
+                    int id = rs.getInt("id");
+                    int serviceStoreId = rs.getInt("store_id");
+                    String title = rs.getString("title");
+                    int price = rs.getInt("price");
+                    Service service = new Service(id, serviceStoreId, title, price);
+                    serviceList.add(service);
+                }
+                stmt.close();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            return serviceList;
+        }
+
       public Service delete(int id) {
             try {
                   PreparedStatement stmt = conexao.prepareStatement("DELETE FROM services WHERE id = ?");
@@ -94,6 +115,7 @@ public class serviceDAO extends DAO {
                   throw new RuntimeException(e);
             }
       }
+      
       public Service update(Service service) {
           try {
               PreparedStatement stmt = conexao.prepareStatement(

@@ -1,6 +1,8 @@
 package service;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import dao.UsersDAO;
 import model.Users;
 import spark.Request;
@@ -9,6 +11,8 @@ import spark.Response;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
@@ -17,49 +21,26 @@ public class UsersService {
     private UsersDAO usersDAO = new UsersDAO();
     private Gson gson = new Gson();
 
-   public String insert(Request request, Response response) throws NoSuchAlgorithmException, InvalidKeySpecException {
+    public String insert(Request request, Response response) {
     try {
+        // Extrai os dados da requisição
         String name = request.queryParams("name");
         String storeIdParam = request.queryParams("store_id");
         String phoneNumber = request.queryParams("phone_number");
-        String passwordHash = request.queryParams("password_hash");
-
-        if (name == null) {
-            response.status(400);
-            System.out.println("Name is null");
-            return "{\"error\": \"Name is null\"}";
-        }
-        if (storeIdParam == null) {
-            response.status(400);
-            System.out.println("Store ID is null");
-            return "{\"error\": \"Store ID is null\"}";
-        }
-        if (phoneNumber == null) {
-            response.status(400);
-            System.out.println("Phone number is null");
-            return "{\"error\": \"Phone number is null\"}";
-        }
-        if (passwordHash == null) {
-            response.status(400);
-            System.out.println("Password hash is null");
-            return "{\"error\": \"Password hash is null\"}";
-        }
-
-        Users user = new Users();
-        user.setName(name);
-        user.setStoreId(Integer.parseInt(storeIdParam));
-        user.setPhoneNumber(phoneNumber);
+        String password = request.queryParams("password_hash");
         String type = request.queryParams("type");
-        if (type != null) {
-            user.setType(type);
-        } else {
-            user.setType("client");
-        }
 
-        byte[] passwordHashBytes = toByteArray(passwordHash);
-        user.setPasswordHash(passwordHashBytes);
+        // Cria um mapa para armazenar os dados do usuário
+        Map<String, String> userData = new HashMap<>();
+        userData.put("name", name);
+        userData.put("store_id", storeIdParam);
+        userData.put("phone_number", phoneNumber);
+        userData.put("password_hash", password);
+        userData.put("type", type != null ? type : "client");
 
-        Users insertedUser = usersDAO.insert(user);
+        // Insere o usuário usando o método insert da classe UsersDAO
+        Users insertedUser = usersDAO.insert(userData);
+
         response.status(201);
         return toJson(insertedUser);
     } catch (NumberFormatException e) {
@@ -73,27 +54,32 @@ public class UsersService {
     }
 }
 
-    
-    
-    // Helper method to convert Uint8Array to byte array
-    private byte[] toByteArray(String uint8Array) {
-        String[] tokens = uint8Array.substring(1, uint8Array.length() - 1).split(",");
-        byte[] byteArray = new byte[tokens.length];
-        for (int i = 0; i < tokens.length; i++) {
-            byteArray[i] = Byte.parseByte(tokens[i].trim());
-        }
-        return byteArray;
-    }
-    
 
-    public byte[] hashPassword(String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        int iterations = 1000;
-        char[] chars = password.toCharArray();
-        byte[] salt = getSalt();
-        PBEKeySpec spec = new PBEKeySpec(chars, salt, iterations, 64 * 8);
-        SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-        byte[] hash = skf.generateSecret(spec).getEncoded();
-        return hash;
+    public String login(Request request, Response response) {
+        try {
+            String phoneNumber = request.queryParams("phone_number");
+            String password = request.queryParams("password_hash");
+            String storeIdParam = request.queryParams("store_id");
+            int storeId = Integer.parseInt(storeIdParam);
+            Users user = usersDAO.login(phoneNumber, password, storeId);
+            String pass = user.getPasswordHash();
+            System.out.println(password + " " + pass);
+            if (password.equals(pass)) {
+                response.status(200);
+                return "{\"user\": \"Autenticado\", \"id\": " + user.getId() + ", \"type\": \"" + user.getType()
+                        + "\", \"name\": \"" + user.getName() + "\"}";
+            } else {
+                response.status(401);
+                return "{\"error\": \"Invalid credentials\"}";
+            }
+        } catch (NumberFormatException e) {
+            response.status(400);
+            return "{\"error\": \"Invalid input data\"}";
+        } catch (RuntimeException e) {
+            System.err.println("Login error: " + e.getMessage());
+            response.status(500);
+            return "{\"error\": \"Failed to authenticate user\"}";
+        }
     }
 
     public String get(Request request, Response response) {
@@ -168,9 +154,7 @@ public class UsersService {
                 updatedUser.setStoreId(Integer.parseInt(request.queryParams("store_id")));
                 updatedUser.setType(request.queryParams("type"));
                 updatedUser.setPhoneNumber(request.queryParams("phone_number"));
-                String password = request.queryParams("password");
-                byte[] hashedPassword = hashPassword(password);
-                updatedUser.setPasswordHash(hashedPassword);
+                updatedUser.setPasswordHash(request.queryParams("password")); // Set password directly
 
                 Users result = usersDAO.update(updatedUser);
                 if (result != null) {
@@ -187,9 +171,6 @@ public class UsersService {
         } catch (RuntimeException e) {
             response.status(500);
             return "{\"error\": \"Failed to update user\"}";
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-            response.status(500);
-            return "{\"error\": \"Failed to hash password\"}";
         }
     }
 
@@ -208,10 +189,4 @@ public class UsersService {
         return gson.toJson(user);
     }
 
-    private byte[] getSalt() throws NoSuchAlgorithmException {
-        SecureRandom sr = SecureRandom.getInstance("SHA1PRNG");
-        byte[] salt = new byte[16];
-        sr.nextBytes(salt);
-        return salt;
-    }
 }

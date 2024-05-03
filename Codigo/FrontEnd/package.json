@@ -24,6 +24,7 @@
     "react-dom": "^18.2.0",
     "react-input-mask": "^2.0.4",
     "react-router-dom": "^6.21.3",
+    "react-spinners": "^0.13.8",
     "styled-components": "^6.1.8"
   },
   "devDependencies": {

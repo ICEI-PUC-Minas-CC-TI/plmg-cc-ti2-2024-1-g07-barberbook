@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from 'react-router-dom';
 import Page from "./Page";
 import styled from "styled-components";
+import { css } from "@emotion/react";
+import ClipLoader from "react-spinners/ClipLoader";
 
 const Header = styled.div`
   width: 100%;
@@ -168,27 +170,74 @@ const Footer = styled.div`
   position: fixed;
 `;
 
+const ModalServiceList = styled.div`
+  max-height: 200px;
+  overflow-y: auto;
+  text-align: left;
+`;
+
+const ServiceItem = styled.div`
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  border-bottom: 1px solid var(--light-gray);
+`;
+
+const ServiceName = styled.span`
+  color: var(--black);
+  flex: 1;
+`;
+
+const DeleteIcon = styled.span`
+  cursor: pointer;
+`;
+
+const LoadingContainerStyles = styled.div`
+  width: 100svw;
+  height: 100svh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.8);
+  z-index: 999; 
+`;
+
+
 function MyAcc() {
   const navigate = useNavigate();
-  const { userId } = useParams();
-  const [currentUser, setCurrentUser] = useState(null);
+  const { userId, storeId } = useParams();
+  const [fetchedUser, setFetchedUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const { storeId } = useParams();
-
+  const [services, setServices] = useState([]);
+  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
 
   useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem("currentUser"));
-    if (!storedUser || !storedUser.logged) {
-      navigate(`/HomePage/store/${storeId}/NumberPage`);
-    } else {
-      setCurrentUser(storedUser);
-    }
-  }, [navigate]);
+    const fetchUser = async () => {
+      try {
+        const response = await fetch(`http://localhost:6789/users/${userId}`);
+        const userData = await response.json();
+        setFetchedUser(userData);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        setErrorMessage('Failed to fetch user data. Please try again later.');
+        setShowModal(true);
+        setLoading(false);
+        setTimeout(() => {
+          setShowModal(false);
+          setErrorMessage("");
+        }, 2500);
+      }
+    };
+
+    fetchUser();
+  }, [userId]);
 
   const handleLogout = () => {
     navigate(`/HomePage/store/${storeId}`);
-    // rota pra logout
+    localStorage.removeItem("currentUser");
   };
 
   const handleMyAppointments = () => {
@@ -199,70 +248,112 @@ function MyAcc() {
     navigate(`/HomePage/store/${storeId}/VisagismPage/${userId}`);
   };
 
-  const handleHistory = () => {
-    // rota para histórico
-  };
-
   const handleAvailableTimes = () => {
     navigate(`/HomePage/store/${storeId}/AdminPage/${userId}`);
   };
 
   const handleMonthlyActivity = () => {
-    // rota para atividade mensal
+    // Rota para atividade mensal
   };
 
   const handleAddService = () => {
     navigate(`/HomePage/store/${storeId}/AddService/${userId}`);
-    // rota para adicioanr servico
   };
 
   const handleAddAdditionalService = () => {
     navigate(`/HomePage/store/${storeId}/AddAdditionalService/${userId}`);
-    // rota para adicionar servico adicional
   };
+
+  const handleViewServices = async () => {
+    try {
+      const response = await fetch(`http://localhost:6789/services/list/${storeId}`);
+      const serviceData = await response.json();
+      setServices(serviceData);
+      setShowModal(true);
+    } catch (error) {
+      console.error('Error fetching services data:', error);
+      setErrorMessage('Failed to fetch services data. Please try again later.');
+      setShowModal(true);
+      setTimeout(() => {
+        setShowModal(false);
+        setErrorMessage("");
+      }, 2500);
+    }
+  };
+
+  const handleDeleteService = async (serviceId) => {
+    try {
+      await fetch(`http://localhost:6789/services/delete/${serviceId}`, {
+        method: 'DELETE',
+      });
+    } catch (error) {
+      console.error('Error deleting service:', error);
+      setErrorMessage("Falha ao deletar serviço. Tente novamente mais tarde.");
+      setShowModal(true);
+      setTimeout(() => {
+        setShowModal(false);
+        setErrorMessage("");
+      }, 2500);
+    }
+  }
 
   return (
     <>
       {currentUser && currentUser.logged && (
         <Page>
-          <Header>
-            <H_1>Minha Conta</H_1>
-            <Exit onClick={() => navigate(`/HomePage/store/${storeId}`)}>X</Exit>
-          </Header>
-          <DivService>
-            <H_2>Olá, {currentUser.name}</H_2>
-            <ImgProfileWrapper>
-              <ImgProfile src="/profile.svg" alt="Foto de Perfil"/>
-            </ImgProfileWrapper>
-            {currentUser.type === "admin" ? (
-              <>
-                <Button onClick={handleAvailableTimes}>Disponibilizar Horários</Button>
-                <Button onClick={handleMonthlyActivity}>Atividade Mensal</Button>
-                <Button onClick={handleAddService}>Adicionar Serviços</Button>
-                <Button onClick={handleAddAdditionalService}>Adicionar Serviços Adicionais</Button>
-              </>
-            ) : (
-              <>
-                <Button onClick={handleMyAppointments}>Meus Agendamentos</Button>
-                <Button onClick={handleMyIdealCut}>Meu Corte Ideal</Button>
-              </>
-            )}
-          </DivService>
-          <Footer>
-            <ExitButton onClick={handleLogout}>Sair</ExitButton>
-          </Footer>
-          {showModal && (
-            <ModalBackground onClick={() => setShowModal(false)}>
-              <ModalDiv>
-                <P>{errorMessage}</P>
-              </ModalDiv>
-            </ModalBackground>
+          {loading ? (
+            <LoadingContainerStyles>
+              <ClipLoader loading={true} size={80} color={"var(--primary)"} />
+            </LoadingContainerStyles>
+          ) : (
+            <>
+              <Header>
+                <H_1>Minha Conta</H_1>
+                <Exit onClick={() => navigate(`/HomePage/store/${storeId}`)}>X</Exit>
+              </Header>
+              <DivService>
+                <H_2>Olá, {fetchedUser.name}</H_2>
+                <ImgProfileWrapper>
+                  <ImgProfile src="/profile.svg" alt="Foto de Perfil" />
+                </ImgProfileWrapper>
+                {fetchedUser.type === "admin" ? (
+                  <>
+                    <Button onClick={handleAvailableTimes}>Disponibilizar Horários</Button>
+                    <Button onClick={handleMonthlyActivity}>Atividade Mensal</Button>
+                    <Button onClick={handleAddService}>Adicionar Serviços</Button>
+                    <Button onClick={handleViewServices}>Visualizar Serviços</Button>
+                    <Button onClick={handleAddAdditionalService}>Adicionar Serviços Adicionais</Button>
+                  </>
+                ) : (
+                  <>
+                    <Button onClick={handleMyAppointments}>Meus Agendamentos</Button>
+                    <Button onClick={handleMyIdealCut}>Meu Corte Ideal</Button>
+                  </>
+                )}
+              </DivService>
+              <Footer>
+                <ExitButton onClick={handleLogout}>Sair</ExitButton>
+              </Footer>
+              {showModal && (
+                <ModalBackground onClick={() => setShowModal(false)}>
+                  <ModalDiv>
+                    <ModalServiceList>
+                      <H_2>Serviços</H_2>
+                      {services.map(service => (
+                        <ServiceItem key={service.id}>
+                          <ServiceName>{service.title}</ServiceName>
+                          <DeleteIcon onClick={() => handleDeleteService(service.id)}>❌</DeleteIcon>
+                        </ServiceItem>
+                      ))}
+                    </ModalServiceList>
+                  </ModalDiv>
+                </ModalBackground>
+              )}
+            </>
           )}
         </Page>
       )}
     </>
   );
 }
-
-
-export default MyAcc;
+export default MyAcc;  
