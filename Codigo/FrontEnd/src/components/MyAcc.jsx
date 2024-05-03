@@ -7,7 +7,7 @@ import ClipLoader from "react-spinners/ClipLoader";
 
 const Header = styled.div`
   width: 100%;
-  max-width: 420px;
+  max-width: 425px;
   background-color: var(--white);
   display: flex;
   justify-content: space-between;
@@ -161,7 +161,7 @@ const Footer = styled.div`
   width: 100%;
   padding: 1rem;
   box-sizing: border-box;
-  max-width: 420px;
+  max-width: 425px;
   background-color: var(--secondary);
   display: flex;
   justify-content: space-between;
@@ -195,6 +195,7 @@ const DeleteIcon = styled.span`
 const LoadingContainerStyles = styled.div`
   width: 100svw;
   height: 100svh;
+  max-width: 425px;
   display: flex;
   justify-content: center;
   align-items: center;

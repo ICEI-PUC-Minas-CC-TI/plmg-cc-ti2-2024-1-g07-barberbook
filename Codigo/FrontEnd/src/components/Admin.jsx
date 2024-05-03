@@ -7,7 +7,7 @@ import 'react-calendar/dist/Calendar.css';
 
 const Header = styled.div`
   width: 100%;
-  max-width: 420px;
+  max-width: 425px;
   background-color: var(--white);
   display: flex;
   justify-content: space-between;
@@ -62,7 +62,7 @@ const DivService = styled.div`
 const Footer = styled.div`
   width: 100%;
   height: 60px;
-  max-width: 420px;
+  max-width: 425px;
   background-color: var(--secondary);
   display: flex;
   justify-content: space-between;
@@ -183,7 +183,7 @@ const DivDrop = styled.div`
   grid-template-columns: 1fr 1fr;
   gap: 20px;
   width: 100%;
-  max-width: 420px;
+  max-width: 425px;
   height: fit-content;
 `;
 

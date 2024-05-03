@@ -3,11 +3,11 @@ import Page from "./Page";
 import styled from "styled-components";
 import { useNavigate, useParams } from 'react-router-dom';
 import CurrencyInput from 'react-currency-input-field';
-
+import ClipLoader from "react-spinners/ClipLoader";
 
 const Header = styled.div`
   width: 100%;
-  max-width: 420px;
+  max-width: 425px;
   background-color: var(--white);
   display: flex;
   justify-content: space-between;
@@ -144,107 +144,128 @@ const P = styled.p`
 `
 
 function capitalizeFirstLetter(string) {
-      let words = string.split(" ");
-      for (let i = 0; i < words.length; i++) {
-            words[i] = words[i].charAt(0).toUpperCase() + words[i].slice(1);
-      }
-      return words.join(" ");
+    let words = string.split(" ");
+    for (let i = 0; i < words.length; i++) {
+        words[i] = words[i].charAt(0).toUpperCase() + words[i].slice(1);
+    }
+    return words.join(" ");
 }
 
+const LoadingContainerStyles = styled.div`
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.8);
+  z-index: 999; 
+`;
 
 function AddService() {
-      const navigate = useNavigate();
-      const [serviceName, setServiceName] = useState('');
-      const [serviceValue, setServiceValue] = useState('');
-      const [showModal, setShowModal] = useState(false);
-      const [errorMessage, setErrorMessage] = useState('');
-      const storeId = useParams();
+    const navigate = useNavigate();
+    const [serviceName, setServiceName] = useState('');
+    const [serviceValue, setServiceValue] = useState('');
+    const [showModal, setShowModal] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+    const { storeId } = useParams();
 
-      const handleServiceNameChange = (e) => {
-            setServiceName(capitalizeFirstLetter(e.target.value));
-      };
+    const handleServiceNameChange = (e) => {
+        setServiceName(capitalizeFirstLetter(e.target.value));
+    };
 
-      const handleServiceValueChange = (value) => {
-            setServiceValue(value);
-      };
+    const handleServiceValueChange = (value) => {
+        setServiceValue(value);
+    };
 
-      const handleCloseModal = () => {
-            setShowModal(false);
-      };
+    const handleCloseModal = () => {
+        setShowModal(false);
+    };
 
-      const handleAddService = async () => {
-            if (!serviceName || !serviceValue) {
-                  setErrorMessage('Preencha todos os campos.');
-                  setShowModal(true);
-                  setTimeout(() => {
-                        setShowModal(false)
-                  }, 2500);
-                  return;
+    const handleAddService = async () => {
+        if (!serviceName || !serviceValue) {
+            setErrorMessage('Preencha todos os campos.');
+            setShowModal(true);
+            setTimeout(() => {
+                setShowModal(false)
+            }, 2500);
+            return;
+        }
+
+        try {
+            setIsLoading(true);
+
+            const response = await fetch('http://localhost:6789/services/insert', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    title: serviceName,
+                    price: parseFloat(serviceValue),
+                    store_id: storeId
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Erro ao adicionar serviço');
             }
 
-            try {
-                  const formData = new URLSearchParams();
-                  formData.append('title', serviceName);
-                  formData.append('price', serviceValue);
-                  formData.append('store_id', storeId.storeId);
+            setServiceName('');
+            setServiceValue('');
+            setErrorMessage('Serviço adicionado com sucesso!');
+            setShowModal(true);
+        } catch (error) {
+            console.error('Erro ao adicionar serviço:', error);
+            setErrorMessage('Erro ao adicionar serviço. Por favor, tente novamente mais tarde.');
+            setShowModal(true);
+            setTimeout(() => {
+                setShowModal(false)
+            }, 2500);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-                  const response = await fetch('http://localhost:6789/services/insert', {
-                        method: 'POST',
-                        headers: {
-                              'Content-Type': 'application/x-www-form-urlencoded'
-                        },
-                        body: formData.toString()
-                  });
-
-                  if (!response.ok) {
-                        throw new Error('Erro ao adicionar serviço');
-                  }
-
-                  setServiceName('');
-                  setServiceValue('');
-                  setErrorMessage('Serviço adicionado com sucesso!');
-                  setShowModal(true);
-            } catch (error) {
-                  console.error('Erro ao adicionar serviço:', error);
-                  setErrorMessage('Erro ao adicionar serviço. Por favor, tente novamente mais tarde.');
-                  setShowModal(true);
-                  setTimeout(() => {
-                        setShowModal(false)
-                  }, 2500);
-            }
-      };
-
-      return (
-            <Page>
-                  <Header>
+    return (
+        <Page>
+            {isLoading ? (
+                <LoadingContainerStyles>
+                    <ClipLoader loading={true} size={80} color={"var(--primary)"} />
+                </LoadingContainerStyles>
+            ) : (
+                <>
+                    <Header>
                         <H_1>Serviços</H_1>
                         <Exit onClick={() => navigate(-1)}>X</Exit>
-                  </Header>
+                    </Header>
 
-                  <DivService>
+                    <DivService>
                         <Service>
-                              <H_2>Nome do Serviço</H_2>
-                              <Input type="text" value={serviceName} onChange={handleServiceNameChange} placeholder="'Corte de Cabelo'" />
-                              <H_2>Valor do Serviço</H_2>
-                              <CurrencyInput
-                                    intlConfig={{ locale: 'pt-BR', currency: 'BRL' }}
-                                    value={serviceValue}
-                                    onValueChange={handleServiceValueChange}
-                                    placeholder="R$ 0,00"
-                              />
-                              <Button onClick={handleAddService}>Adicionar</Button>
+                            <H_2>Nome do Serviço</H_2>
+                            <Input type="text" value={serviceName} onChange={handleServiceNameChange} placeholder="'Corte de Cabelo'" />
+                            <H_2>Valor do Serviço</H_2>
+                            <CurrencyInput
+                                intlConfig={{ locale: 'pt-BR', currency: 'BRL' }}
+                                value={serviceValue}
+                                onValueChange={handleServiceValueChange}
+                                placeholder="R$ 0,00"
+                            />
+                            <Button onClick={handleAddService}>Adicionar</Button>
                         </Service>
-                  </DivService>
+                    </DivService>
 
-                  {showModal && (
+                    {showModal && (
                         <ModalBackground onClick={handleCloseModal}>
-                              <ModalDiv>
-                                    <P>{errorMessage}</P>
-                              </ModalDiv>
+                            <ModalDiv>
+                                <P>{errorMessage}</P>
+                            </ModalDiv>
                         </ModalBackground>
-                  )}
-            </Page>
-      );
+                    )}
+                </>
+            )}
+        </Page>
+    );
 }
 
 export default AddService;

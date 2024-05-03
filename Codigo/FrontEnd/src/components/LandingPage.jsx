@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import SearchIcon from '@mui/icons-material/Search';
 import { useNavigate } from "react-router-dom";
-import stores from "../assets/js/store";
+import ClipLoader from "react-spinners/ClipLoader";
+import MockUpImg from "../../public/mockup.svg";
 
 const Container = styled.div`
   width: 100%;
@@ -72,6 +73,7 @@ const DivMockUp = styled.div`
     flex-direction: column;
   }
 `;
+
 
 const MockUp = styled.img`
   width: 50vw;
@@ -269,31 +271,48 @@ const Button = styled.button`
   }
 `;
 
+const LoadingContainerStyles = styled.div`
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.8);
+  z-index: 999;
+`;
+
 function LandingPage() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [stores, setStores] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:6789/stores/list/1', {
-      method: 'GET',
-      mode: 'cors'
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
+    const fetchStores = async () => {
+      try {
+        const response = await fetch('http://localhost:6789/stores/list/1', {
+          method: 'GET',
+          mode: 'cors'
+        });
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        setStores(data);
+
+        // Atraso de 2 segundos antes de definir isLoading como false
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 1000);
+      } catch (error) {
+        console.error('Error fetching barber shops:', error);
+        setIsLoading(false); // Definir isLoading como false em caso de erro
       }
-      return response.json();
-    })
-    .then(data => {
-      setStores(data);
-    })
-    .catch(error => {
-      console.error('Error fetching barber shops:', error);
-    });
+    };
+
+    fetchStores();
   }, []);
-  
 
   const searchStore = (event) => {
     const query = event.target.value;
@@ -312,6 +331,16 @@ function LandingPage() {
   const handleStoreClick = (store) => {
     navigate(`/HomePage/store/${store.id}`);
   };
+
+  if (isLoading) {
+    return (
+      <Container>
+        <LoadingContainerStyles>
+          <ClipLoader loading={isLoading} size={80} color={"var(--primary)"} />
+        </LoadingContainerStyles>
+      </Container>
+    );
+  }
 
 
   return (
@@ -353,7 +382,7 @@ function LandingPage() {
           </SecondaryTitle>
           <Button onClick={() => navigate('/StoreRegister')} >Cadastrar Barbearia</Button>
         </Text>
-        <MockUp src="././public/mockup.svg" alt="" />
+        <MockUp src={MockUpImg} alt="Mockup" />
       </DivMockUp>
     </Container>
   );

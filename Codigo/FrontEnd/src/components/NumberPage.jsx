@@ -3,11 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Page from "./Page";
 import styled from "styled-components";
 import InputMask from 'react-input-mask';
-import stores from "../assets/js/store";
 
 const Header = styled.div`
   width: 100%;
-  max-width: 420px;
+  max-width: 425px;
   background-color: var(--white);
   display: flex;
   justify-content: space-between;
@@ -84,7 +83,7 @@ const Service = styled.div`
 const Footer = styled.div`
   width: 100%;
   height: 60px;
-  max-width: 420px;
+  max-width: 425px;
   background-color: var(--secondary);
   display: flex;
   justify-content: center;

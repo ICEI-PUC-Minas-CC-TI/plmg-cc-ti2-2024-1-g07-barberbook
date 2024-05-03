@@ -22,7 +22,7 @@ const P = styled.p`
 
 const Header = styled.div`
   width: 100%;
-  max-width: 420px;
+  max-width: 425px;
   background-color: var(--white);
   display: flex;
   justify-content: space-between;

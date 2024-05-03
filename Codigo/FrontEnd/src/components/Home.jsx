@@ -15,12 +15,12 @@ const Capa = styled.img`
   height: auto;
   object-fit: cover;
   object-position: center;
-  max-width:420px;
+  max-width:425px;
   max-height: 220px;
 `;
 
 const Content = styled.div`
-  max-width: 420px;
+  max-width: 425px;
   min-width: 320px;
   min-height: 100svh;
   background-color: var(--primary);
@@ -200,7 +200,7 @@ const FooterFixed = styled.div`
   box-sizing: border-box;
   background-color: var(--secondary);
   height: 72px;
-  width: 420px;
+  width: 425px;
   max-width: 100%;
   z-index: 999;
   display: flex;
@@ -238,8 +238,9 @@ const PaddingButton = styled.div`
 `;
 
 const LoadingContainerStyles = styled.div`
-  width: 100vw; 
-  height: 100vh; 
+  width: 100svw;
+  height: 100svh;
+  max-width: 425px;
   display: flex;
   justify-content: center;
   align-items: center;
