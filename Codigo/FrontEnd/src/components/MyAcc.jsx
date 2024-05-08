@@ -145,18 +145,6 @@ const ModalBackground = styled.div`
   backdrop-filter: blur(4px);
 `;
 
-const ModalDiv = styled.div`
-  color: var(--black);
-  text-align: center;
-  background-color: var(--white);
-  border-radius: 5px;
-  padding:20px;
-  box-sizing: border-box;
-  font-family: Arial, Helvetica, sans-serif; line-height: 1.125em; 
-  width: 100%;
-  max-width:350px;
-`;
-
 const Footer = styled.div`
   width: 100%;
   padding: 1rem;
@@ -170,9 +158,22 @@ const Footer = styled.div`
   position: fixed;
 `;
 
+const ModalDiv = styled.div`
+  color: var(--black);
+  text-align: center;
+  background-color: var(--white);
+  border-radius: 5px;
+  padding: 20px;
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.125em;
+  width: 100%;
+  max-width: 350px;
+  overflow-y: auto; /* Adicionando barra de rolagem ao modal */
+`;
+
 const ModalServiceList = styled.div`
-  max-height: 200px;
-  overflow-y: auto;
+  max-height: 300px; /* Ajuste a altura máxima conforme necessário */
   text-align: left;
 `;
 
@@ -213,13 +214,16 @@ function MyAcc() {
   const [showModal, setShowModal] = useState(false);
   const [services, setServices] = useState([]);
   const [additionalServices, setAdditionalServices] = useState([]);
-  const [viewingAdditionalServices, setViewingAdditionalServices] = useState(false); // Estado para determinar se estamos visualizando serviços adicionais
+  const [viewingAdditionalServices, setViewingAdditionalServices] = useState(false);
   const currentUser = JSON.parse(localStorage.getItem("currentUser"));
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const response = await fetch(`http://localhost:6789/users/${userId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch user data');
+        }
         const userData = await response.json();
         setFetchedUser(userData);
         setLoading(false);
@@ -270,10 +274,13 @@ function MyAcc() {
   const handleViewServices = async () => {
     try {
       const response = await fetch(`http://localhost:6789/services/store/${storeId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch services data');
+      }
       const serviceData = await response.json();
       setServices(serviceData);
       setShowModal(true);
-      setViewingAdditionalServices(false); // Defina para falso para visualizar os serviços principais
+      setViewingAdditionalServices(false);
     } catch (error) {
       console.error('Error fetching services data:', error);
       setErrorMessage('Failed to fetch services data. Please try again later.');
@@ -288,11 +295,13 @@ function MyAcc() {
   const handleViewAdditionalServices = async () => {
     try {
       const response = await fetch(`http://localhost:6789/addservice/store/${storeId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch additional services data');
+      }
       const serviceData = await response.json();
-      console.log(serviceData);
       setAdditionalServices(serviceData);
       setShowModal(true);
-      setViewingAdditionalServices(true); // Defina para verdadeiro para visualizar os serviços adicionais
+      setViewingAdditionalServices(true);
     } catch (error) {
       console.error('Error fetching additional services data:', error);
       setErrorMessage('Failed to fetch additional services data. Please try again later.');
@@ -320,20 +329,36 @@ function MyAcc() {
     }
   }
 
+  const handleDeleteAd = async (serviceId) => {
+    try {
+      await fetch(`http://localhost:6789/addservice/delete/${serviceId}`, {
+        method: 'DELETE',
+      });
+    } catch (error) {
+      console.error('Error deleting additional service:', error);
+      setErrorMessage("Falha ao deletar serviço adicional. Tente novamente mais tarde.");
+      setShowModal(true);
+      setTimeout(() => {
+        setShowModal(false);
+        setErrorMessage("");
+      }, 2500);
+    }
+  }
+
   return (
     <>
-      {currentUser && currentUser.logged && (
+      {currentUser && currentUser.logged ? (
         <Page>
+          <Header>
+            <H_1>Minha Conta</H_1>
+            <Exit onClick={() => navigate(`/HomePage/store/${storeId}`)}>X</Exit>
+          </Header>
           {loading ? (
             <LoadingContainerStyles>
               <ClipLoader loading={true} size={80} color={"var(--primary)"} />
             </LoadingContainerStyles>
           ) : (
-            <>
-              <Header>
-                <H_1>Minha Conta</H_1>
-                <Exit onClick={() => navigate(`/HomePage/store/${storeId}`)}>X</Exit>
-              </Header>
+            fetchedUser ? (
               <DivService>
                 <H_2>Olá, {fetchedUser.name}</H_2>
                 <ImgProfileWrapper>
@@ -355,38 +380,41 @@ function MyAcc() {
                   </>
                 )}
               </DivService>
-              <Footer>
-                <ExitButton onClick={handleLogout}>Sair</ExitButton>
-              </Footer>
-              {showModal && (
-                <ModalBackground onClick={() => setShowModal(false)}>
-                  <ModalDiv>
-                    <ModalServiceList>
-                      <H_2>{viewingAdditionalServices ? "Serviços Adicionais" : "Serviços"}</H_2>
-                      {viewingAdditionalServices ? (
-                        additionalServices.map(service => (
-                          <ServiceItem key={service.id}>
-                            <ServiceName>{service.title}</ServiceName>
-                            <DeleteIcon onClick={() => handleDeleteService(service.id)}>❌</DeleteIcon>
-                          </ServiceItem>
-                        ))
-                      ) : (
-                        services.map(service => (
-                          <ServiceItem key={service.id}>
-                            <ServiceName>{service.title}</ServiceName>
-                            <DeleteIcon onClick={() => handleDeleteService(service.id)}>❌</DeleteIcon>
-                          </ServiceItem>
-                        ))
-                      )}
-                    </ModalServiceList>
-                  </ModalDiv>
-                </ModalBackground>
-              )}
-            </>
+            ) : (
+              <p>Usuário não encontrado.</p>
+            )
+          )}
+          <Footer>
+            <ExitButton onClick={handleLogout}>Sair</ExitButton>
+          </Footer>
+          {showModal && (
+            <ModalBackground onClick={() => setShowModal(false)}>
+              <ModalDiv>
+                <H_2>{viewingAdditionalServices ? "Serviços Adicionais" : "Serviços"}</H_2>
+                <ModalServiceList>
+                  {viewingAdditionalServices ? (
+                    additionalServices.map(service => (
+                      <ServiceItem key={service.id}>
+                        <ServiceName>{service.title}</ServiceName>
+                        <DeleteIcon onClick={() => handleDeleteAd(service.id)}>❌</DeleteIcon>
+                      </ServiceItem>
+                    ))
+                  ) : (
+                    services.map(service => (
+                      <ServiceItem key={service.id}>
+                        <ServiceName>{service.title}</ServiceName>
+                        <DeleteIcon onClick={() => handleDeleteService(service.id)}>❌</DeleteIcon>
+                      </ServiceItem>
+                    ))
+                  )}
+                </ModalServiceList>
+              </ModalDiv>
+            </ModalBackground>
           )}
         </Page>
-      )}
+      ) : null}
     </>
   );
 }
+
 export default MyAcc;

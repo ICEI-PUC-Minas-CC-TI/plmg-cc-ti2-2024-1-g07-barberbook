@@ -156,11 +156,15 @@ function ServicePage() {
         console.error('Erro ao buscar serviço:', error);
         setIsLoading(false);
       });
-  }, [storeId, serviceId]);
+  }, [serviceId]);
 
   const handleServiceSelection = (foundService) => {
-    sessionStorage.setItem('SelectedService', JSON.stringify(foundService));
-    navigate(`/HomePage/store/${storeId}/ServicePage/${serviceId}/AdditionalService`);
+    if (foundService) {
+      sessionStorage.setItem('SelectedService', JSON.stringify(foundService));
+      navigate(`/HomePage/store/${storeId}/ServicePage/${serviceId}/AdditionalService`);
+    } else {
+      console.error('Serviço não encontrado.');
+    }
   }
 
   const handleNoSelection = () => {
@@ -170,34 +174,31 @@ function ServicePage() {
 
   return (
     <Page>
-
+      <Header>
+        <H_1>Serviço Selecionado</H_1>
+        <Exit onClick={() => { sessionStorage.clear(); navigate(-1); }}>X</Exit>
+      </Header>
       {isLoading ? (
         <LoadingContainerStyles>
           <ClipLoader loading={true} size={80} color={"var(--primary)"} />
         </LoadingContainerStyles>
       ) : (
-        <>
-          <Header>
-            <H_1>Serviço Selecionado</H_1>
-            <Exit onClick={() => { sessionStorage.clear(); navigate(-1); }}>X</Exit>
-          </Header>
-
-          {!isLoading && service && (
-            <DivService>
-              <Service>
-                <ServiceText>{service.title}</ServiceText>
-                <ServicePrice>R$ {service.price.toFixed(2)}</ServicePrice>
-              </Service>
-            </DivService>
-          )}
-
-          <Footer>
-            <Back onClick={handleNoSelection}>Voltar</Back>
-            <Next onClick={() => handleServiceSelection(service)}>Próximo</Next>
-          </Footer>
-        </>
+        service ? (
+          <DivService>
+            <Service>
+              <ServiceText>{service.title}</ServiceText>
+              <ServicePrice>R$ {service.price.toFixed(2)}</ServicePrice>
+            </Service>
+          </DivService>
+        ) : (
+          <p>Serviço não encontrado.</p>
+        )
       )}
-      </Page>
+      <Footer>
+        <Back onClick={handleNoSelection}>Voltar</Back>
+        <Next onClick={() => handleServiceSelection(service)}>Próximo</Next>
+      </Footer>
+    </Page>
   );
 }
 

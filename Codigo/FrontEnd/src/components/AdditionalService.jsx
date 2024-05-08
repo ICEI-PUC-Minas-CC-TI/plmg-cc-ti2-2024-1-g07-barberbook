@@ -145,12 +145,11 @@ const LoadingContainerStyles = styled.div`
   z-index: 999; 
 `;
 
-
 function AdditionalService() {
   const { storeId, serviceId } = useParams();
   const navigate = useNavigate();
   const [additionalServices, setAdditionalServices] = useState([]);
-  const [isLoading, setIsLoading] = useState(true); // Definindo o estado isLoading
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchAdditionalServices = async () => {
@@ -163,9 +162,8 @@ function AdditionalService() {
         setAdditionalServices(data);
       } catch (error) {
         console.error('Error fetching additional services:', error);
-        // Lida com o erro (por exemplo, mostra uma mensagem de erro)
       } finally {
-        setIsLoading(false); // Atualizando o estado isLoading para false quando a solicitação for concluída
+        setIsLoading(false);
       }
     };
 
@@ -173,8 +171,12 @@ function AdditionalService() {
   }, [storeId]);
 
   const handleServiceSelection = (service) => {
-    sessionStorage.setItem('SelectedAdditionalService', JSON.stringify(service));
-    navigate(`/HomePage/store/${storeId}/ServicePage/${serviceId}/AdditionalService/SchedulingPage`);
+    if (service) {
+      sessionStorage.setItem('SelectedAdditionalService', JSON.stringify(service));
+      navigate(`/HomePage/store/${storeId}/ServicePage/${serviceId}/AdditionalService/SchedulingPage`);
+    } else {
+      console.error('Serviço adicional não encontrado.');
+    }
   };
 
   const handleNoSelection = () => {
@@ -184,36 +186,32 @@ function AdditionalService() {
 
   return (
     <Page>
+      <Header>
+        <H_1>Serviços Adicionais</H_1>
+        <Exit onClick={() => { sessionStorage.clear(); navigate(-2); }}>X</Exit>
+      </Header>
       {isLoading ? (
         <LoadingContainerStyles>
-          <ClipLoader loading={isLoading} size={80} color={"var(--primary)"} />
+          <ClipLoader loading={true} size={80} color={"var(--primary)"} />
         </LoadingContainerStyles>
       ) : (
-        <>
-          <Header>
-            <H_1>Serviços Adicionais</H_1>
-            <Exit onClick={() => { sessionStorage.clear(); navigate(-2); }}>X</Exit>
-          </Header>
-
+        additionalServices && additionalServices.length > 0 ? (
           <DivService>
-            {additionalServices.length > 0 ? (
-              additionalServices.map(service => (
-                <Service key={service.id} onClick={() => handleServiceSelection(service)}>
-                  <ServiceText>{service.title}</ServiceText>
-                  <ServicePrice>R$ {service.price.toFixed(2)}</ServicePrice>
-                </Service>
-              ))
-            ) : (
-              <p>Nenhum serviço adicional disponível.</p>
-            )}
+            {additionalServices.map(service => (
+              <Service key={service.id} onClick={() => handleServiceSelection(service)}>
+                <ServiceText>{service.title}</ServiceText>
+                <ServicePrice>R$ {service.price.toFixed(2)}</ServicePrice>
+              </Service>
+            ))}
           </DivService>
-
-          <Footer>
-            <Back onClick={() => navigate(-1)}>Voltar</Back>
-            <Next onClick={handleNoSelection}>Próximo</Next>
-          </Footer>
-        </>
+        ) : (
+          <p>Nenhum serviço adicional disponível.</p>
+        )
       )}
+      <Footer>
+        <Back onClick={() => navigate(-1)}>Voltar</Back>
+        <Next onClick={handleNoSelection}>Próximo</Next>
+      </Footer>
     </Page>
   );
 }

@@ -200,7 +200,6 @@ function SchedulingPage() {
 
   const handleDayClick = (value) => {
     const selectedDay = value.toISOString().split('T')[0];
-    // Encontrar a loja correspondente com base no storeId
     const selectedStore = stores.find(store => store.id === parseInt(storeId));
     if (selectedStore) {
       const availableTimesForDayValue = selectedStore.availableTimesForDay[selectedDay] || [];

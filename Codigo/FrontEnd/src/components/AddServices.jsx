@@ -154,6 +154,7 @@ function capitalizeFirstLetter(string) {
 const LoadingContainerStyles = styled.div`
   width: 100vw;
   height: 100vh;
+  max-width: 425px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -183,28 +184,29 @@ function AddService() {
     };
 
     const handleAddService = async () => {
-        if (!serviceName || !serviceValue) {
-            setErrorMessage('Preencha todos os campos.');
-            setShowModal(true);
-            setTimeout(() => {
-                setShowModal(false)
-            }, 2500);
-            return;
-        }
-
         try {
+            setErrorMessage('');
+            setShowModal(false);
+
+            if (!serviceName || !serviceValue) {
+                setErrorMessage('Preencha todos os campos.');
+                setShowModal(true);
+                return;
+            }
+
             setIsLoading(true);
+
+            const requestBody = new URLSearchParams();
+            requestBody.append('title', serviceName);
+            requestBody.append('price', parseFloat(serviceValue));
+            requestBody.append('store_id', storeId);
 
             const response = await fetch('http://localhost:6789/services/insert', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                body: JSON.stringify({
-                    title: serviceName,
-                    price: parseFloat(serviceValue),
-                    store_id: storeId
-                })
+                body: requestBody
             });
 
             if (!response.ok) {
@@ -213,15 +215,24 @@ function AddService() {
 
             setServiceName('');
             setServiceValue('');
+
             setErrorMessage('Serviço adicionado com sucesso!');
             setShowModal(true);
         } catch (error) {
             console.error('Erro ao adicionar serviço:', error);
-            setErrorMessage('Erro ao adicionar serviço. Por favor, tente novamente mais tarde.');
+
+            let errorMessage = 'Erro ao adicionar serviço. Por favor, tente novamente mais tarde.';
+            try {
+                const jsonResponse = await response.json();
+                if (jsonResponse && jsonResponse.error) {
+                    errorMessage = jsonResponse.error;
+                }
+            } catch (jsonError) {
+                console.error('Erro ao analisar resposta JSON:', jsonError);
+            }
+
+            setErrorMessage(errorMessage);
             setShowModal(true);
-            setTimeout(() => {
-                setShowModal(false)
-            }, 2500);
         } finally {
             setIsLoading(false);
         }
@@ -229,17 +240,17 @@ function AddService() {
 
     return (
         <Page>
-            {isLoading ? (
-                <LoadingContainerStyles>
-                    <ClipLoader loading={true} size={80} color={"var(--primary)"} />
-                </LoadingContainerStyles>
-            ) : (
-                <>
-                    <Header>
-                        <H_1>Serviços</H_1>
-                        <Exit onClick={() => navigate(-1)}>X</Exit>
-                    </Header>
 
+            <>
+                <Header>
+                    <H_1>Serviços</H_1>
+                    <Exit onClick={() => navigate(-1)}>X</Exit>
+                </Header>
+                {isLoading ? (
+                    <LoadingContainerStyles>
+                        <ClipLoader loading={true} size={80} color={"var(--primary)"} />
+                    </LoadingContainerStyles>
+                ) : (
                     <DivService>
                         <Service>
                             <H_2>Nome do Serviço</H_2>
@@ -254,16 +265,16 @@ function AddService() {
                             <Button onClick={handleAddService}>Adicionar</Button>
                         </Service>
                     </DivService>
+            )}
 
                     {showModal && (
-                        <ModalBackground onClick={handleCloseModal}>
-                            <ModalDiv>
-                                <P>{errorMessage}</P>
-                            </ModalDiv>
-                        </ModalBackground>
-                    )}
-                </>
-            )}
+                    <ModalBackground onClick={handleCloseModal}>
+                        <ModalDiv>
+                            <P>{errorMessage}</P>
+                        </ModalDiv>
+                    </ModalBackground>
+                )}
+            </>
         </Page>
     );
 }

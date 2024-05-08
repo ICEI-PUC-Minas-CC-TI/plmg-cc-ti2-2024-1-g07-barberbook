@@ -210,7 +210,7 @@ const SearchResultDropdown = styled.div`
 
     @media screen and (max-width: 425px) {
       max-width: 80%;
-      top: 11vh;
+      top: 9vh;
     }
 `;
 
