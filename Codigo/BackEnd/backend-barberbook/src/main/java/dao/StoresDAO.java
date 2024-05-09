@@ -1,11 +1,15 @@
 package dao;
 
-import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import model.Stores;
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class StoresDAO extends DAO {
 
@@ -16,6 +20,47 @@ public class StoresDAO extends DAO {
 
       public void finalize() {
             close();
+      }
+
+      public void limparHorariosExpirados() {
+            try {
+                  LocalDate hoje = LocalDate.now();
+                  Date dataAtual = Date.valueOf(hoje);
+                  PreparedStatement stmt = conexao.prepareStatement(
+                              "SELECT id, available_times_for_day FROM stores");
+                  ResultSet rs = stmt.executeQuery();
+
+                  while (rs.next()) {
+                        int id = rs.getInt("id");
+                        String availableTimesJson = rs.getString("available_times_for_day");
+
+                        JsonObject availableTimesObject = JsonParser.parseString(availableTimesJson).getAsJsonObject();
+                        List<String> datesToRemove = new ArrayList<>();
+
+                        for (Map.Entry<String, JsonElement> entry : availableTimesObject.entrySet()) {
+                              String date = entry.getKey();
+                              LocalDate dateObj = LocalDate.parse(date);
+
+                              if (dateObj.isBefore(hoje)) {
+                                    datesToRemove.add(date);
+                              }
+                        }
+
+                        for (String dateToRemove : datesToRemove) {
+                              availableTimesObject.remove(dateToRemove);
+                        }
+                        PreparedStatement updateStmt = conexao.prepareStatement(
+                                    "UPDATE stores SET available_times_for_day = ? WHERE id = ?");
+                        updateStmt.setString(1, availableTimesObject.toString());
+                        updateStmt.setInt(2, id);
+                        updateStmt.executeUpdate();
+                        updateStmt.close();
+                  }
+
+                  stmt.close();
+            } catch (SQLException e) {
+                  throw new RuntimeException(e);
+            }
       }
 
       public Stores insert(Stores stores) {
@@ -46,6 +91,49 @@ public class StoresDAO extends DAO {
             }
       }
 
+      public String getTimes(int id) {
+            String availableTimes = null;
+            try {
+                  PreparedStatement stmt = conexao
+                              .prepareStatement("SELECT available_times_for_day FROM stores WHERE id = ?");
+                  stmt.setInt(1, id);
+                  ResultSet rs = stmt.executeQuery();
+                  if (rs.next()) {
+                        availableTimes = rs.getString("available_times_for_day");
+                  }
+                  stmt.close();
+                  return availableTimes;
+            } catch (SQLException e) {
+                  throw new RuntimeException(e);
+            }
+      }
+
+      public Stores insertTimes(int id, JsonElement newAvailableTimes) {
+            try {
+                  String existingTimesJson = getTimes(id);
+                  JsonObject existingTimesObject = new JsonObject();
+                  if (existingTimesJson != null) {
+                        existingTimesObject = JsonParser.parseString(existingTimesJson).getAsJsonObject();
+                  }
+                  JsonObject newAvailableTimesObject = newAvailableTimes.getAsJsonObject();
+                  for (Map.Entry<String, JsonElement> entry : newAvailableTimesObject.entrySet()) {
+                        String date = entry.getKey();
+                        JsonArray timesArray = entry.getValue().getAsJsonArray();
+                        existingTimesObject.add(date, timesArray);
+                  }
+
+                  PreparedStatement stmt = conexao
+                              .prepareStatement("UPDATE stores SET available_times_for_day = ? WHERE id = ?");
+                  stmt.setObject(1, existingTimesObject.toString(), Types.OTHER);
+                  stmt.setInt(2, id);
+                  stmt.executeUpdate();
+                  stmt.close();
+                  return get(id);
+            } catch (SQLException e) {
+                  throw new RuntimeException(e);
+            }
+      }
+
       public Stores get(int id) {
             Stores stores = null;
             try {
@@ -55,7 +143,8 @@ public class StoresDAO extends DAO {
                   if (rs.next()) {
                         stores = new Stores(rs.getInt("id"), rs.getString("title"), rs.getString("location_image_url"),
                                     rs.getString("location_url"), rs.getString("address"), rs.getString("phone_number"),
-                                    rs.getString("whatsapp"), rs.getString("instagram"));
+                                    rs.getString("whatsapp"), rs.getString("instagram"),
+                                    rs.getString("available_times_for_day"));
                   }
                   stmt.close();
                   return stores;
@@ -78,8 +167,9 @@ public class StoresDAO extends DAO {
                         String phone_number = rs.getString("phone_number");
                         String whatsapp = rs.getString("whatsapp");
                         String instagram = rs.getString("instagram");
+                        String available_times_for_day = rs.getString("available_times_for_day");
                         Stores store = new Stores(id, title, location_image_url, location_url, address, phone_number,
-                                    whatsapp, instagram);
+                                    whatsapp, instagram, available_times_for_day);
                         storesList.add(store);
                   }
                   stmt.close();
@@ -87,6 +177,20 @@ public class StoresDAO extends DAO {
                   throw new RuntimeException(e);
             }
             return storesList;
+      }
+
+      public Stores updateTimes(int id, String available_times_for_day) {
+            try {
+                  PreparedStatement stmt = conexao
+                              .prepareStatement("UPDATE stores SET available_times_for_day = ? WHERE id = ?");
+                  stmt.setString(1, available_times_for_day);
+                  stmt.setInt(2, id);
+                  stmt.executeUpdate();
+                  stmt.close();
+                  return get(id);
+            } catch (SQLException e) {
+                  throw new RuntimeException(e);
+            }
       }
 
       public Stores delete(int id) {

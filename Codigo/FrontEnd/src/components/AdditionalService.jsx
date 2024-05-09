@@ -154,7 +154,7 @@ function AdditionalService() {
   useEffect(() => {
     const fetchAdditionalServices = async () => {
       try {
-        const response = await fetch(`http://localhost:6789/addservice/store/${storeId}`);
+        const response = await fetch(`http://192.168.0.63:6789/addservice/store/${storeId}`);
         if (!response.ok) {
           throw new Error('Failed to fetch additional services');
         }

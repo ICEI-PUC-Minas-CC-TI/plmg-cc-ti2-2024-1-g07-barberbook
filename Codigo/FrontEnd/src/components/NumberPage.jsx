@@ -194,7 +194,7 @@ function NumberPage() {
   const currentUser = JSON.parse(localStorage.getItem('currentUser'));
 
   const handleNext = () => {
-    fetch(`http://localhost:6789/users/test/${number}/${parsedStoreId}`, {
+    fetch(`http://192.168.0.63:6789/users/test/${number}/${parsedStoreId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -231,7 +231,7 @@ function NumberPage() {
     };
 
     const queryParams = new URLSearchParams(userData).toString();
-    fetch(`http://localhost:6789/users/login?${queryParams}`, {
+    fetch(`http://192.168.0.63:6789/users/login?${queryParams}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -272,7 +272,7 @@ function NumberPage() {
     };
     console.log(userData);
     const queryParams = new URLSearchParams(userData).toString();
-    fetch(`http://localhost:6789/users/insert?${queryParams}`, {
+    fetch(`http://192.168.0.63:6789/users/insert?${queryParams}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

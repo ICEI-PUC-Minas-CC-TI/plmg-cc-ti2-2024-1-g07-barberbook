@@ -110,6 +110,29 @@ public class AppointmentsDAO extends DAO {
         return appointmentsList;
     }
 
+    public List<Appointments> getByUserStore(int userId, int storeId) { 
+        List<Appointments> appointmentsList = new ArrayList<>();
+        try {
+            PreparedStatement stmt = conexao.prepareStatement("SELECT * FROM appointments WHERE user_id = ? AND store_id = ?");
+            stmt.setInt(1, userId);
+            stmt.setInt(2, storeId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                Date appointmentsDate = rs.getDate("appointment_date");
+                int serviceId = rs.getInt("service_id");
+                int additionalServiceId = rs.getInt("additional_service_id");
+                Time startTime = rs.getTime("start_time");
+                Appointments appointments = new Appointments(id, storeId, appointmentsDate, userId, serviceId, additionalServiceId, startTime);
+                appointmentsList.add(appointments);
+            }
+            stmt.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return appointmentsList;
+    }
+
     public Appointments delete(int id) { 
         try {
             PreparedStatement stmt = conexao.prepareStatement("DELETE FROM appointments WHERE id = ?");

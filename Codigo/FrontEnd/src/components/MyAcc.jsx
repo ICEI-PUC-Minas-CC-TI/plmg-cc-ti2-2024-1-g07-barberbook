@@ -222,7 +222,7 @@ function MyAcc() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await fetch(`http://localhost:6789/users/${userId}`);
+        const response = await fetch(`http://192.168.0.63:6789/users/${userId}`);
         if (!response.ok) {
           throw new Error('Failed to fetch user data');
         }
@@ -275,7 +275,7 @@ function MyAcc() {
 
   const handleViewServices = async () => {
     try {
-      const response = await fetch(`http://localhost:6789/services/store/${storeId}`);
+      const response = await fetch(`http://192.168.0.63:6789/services/store/${storeId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch services data');
       }
@@ -296,7 +296,7 @@ function MyAcc() {
 
   const handleViewAdditionalServices = async () => {
     try {
-      const response = await fetch(`http://localhost:6789/addservice/store/${storeId}`);
+      const response = await fetch(`http://192.168.0.63:6789/addservice/store/${storeId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch additional services data');
       }
@@ -317,7 +317,7 @@ function MyAcc() {
 
   const handleDeleteService = async (serviceId) => {
     try {
-      await fetch(`http://localhost:6789/services/delete/${serviceId}`, {
+      await fetch(`http://192.168.0.63:6789/services/delete/${serviceId}`, {
         method: 'DELETE',
       });
     } catch (error) {
@@ -333,7 +333,7 @@ function MyAcc() {
 
   const handleDeleteAd = async (serviceId) => {
     try {
-      await fetch(`http://localhost:6789/addservice/delete/${serviceId}`, {
+      await fetch(`http://192.168.0.63:6789/addservice/delete/${serviceId}`, {
         method: 'DELETE',
       });
     } catch (error) {

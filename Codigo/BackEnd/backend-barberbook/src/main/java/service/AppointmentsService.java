@@ -44,11 +44,14 @@ public class AppointmentsService {
                   String additionalServiceIdParam = request.queryParams("additional_service_id");
                   if (additionalServiceIdParam != null && !additionalServiceIdParam.isEmpty()) {
                         appointments.setAdditionalServiceId(Integer.parseInt(additionalServiceIdParam));
+                  } else {
+                        appointments.setAdditionalServiceId(1);
                   }
 
                   String startTimeParam = request.queryParams("start_time");
                   if (startTimeParam != null && !startTimeParam.isEmpty()) {
-                        appointments.setStartTime(Time.valueOf(startTimeParam));
+                        String decodedStartTimeParam = java.net.URLDecoder.decode(startTimeParam, "UTF-8");
+                        appointments.setStartTime(Time.valueOf(decodedStartTimeParam));
                   }
 
                   appointmentsDAO.insert(appointments);
@@ -57,9 +60,11 @@ public class AppointmentsService {
                   return toJson(appointments);
             } catch (NumberFormatException e) {
                   response.status(400);
+                  System.out.println(e.getMessage());
                   return "{\"error\": \"Invalid parameter format\"}";
             } catch (IllegalArgumentException e) {
                   response.status(400);
+                  System.out.println(e.getMessage());
                   return "{\"error\": \"Invalid date format\"}";
             } catch (Exception e) {
                   response.status(500);
@@ -114,7 +119,8 @@ public class AppointmentsService {
                   updatedAppointments.setAppointmentsDate(Date.valueOf(request.queryParams("appointments_date")));
                   updatedAppointments.setUserId(Integer.parseInt(request.queryParams("user_id")));
                   updatedAppointments.setServiceId(Integer.parseInt(request.queryParams("service_id")));
-                  updatedAppointments.setAdditionalServiceId(Integer.parseInt(request.queryParams("additional_service_id")));
+                  updatedAppointments
+                              .setAdditionalServiceId(Integer.parseInt(request.queryParams("additional_service_id")));
                   updatedAppointments.setStartTime(Time.valueOf(request.queryParams("start_time")));
 
                   Appointments result = appointmentsDAO.update(updatedAppointments);
@@ -131,6 +137,18 @@ public class AppointmentsService {
       public String getByStoreId(Request request, Response response) {
             int storeId = Integer.parseInt(request.params(":storeId"));
             List<Appointments> appointmentsList = appointmentsDAO.getByStoreId(storeId);
+            if (!appointmentsList.isEmpty()) {
+                  return gson.toJson(appointmentsList);
+            } else {
+                  response.status(404);
+                  return "{\"error\": \"No appointments found\"}";
+            }
+      }
+
+      public String getByUserStore(Request request, Response response) {
+            int userId = Integer.parseInt(request.params(":userId"));
+            int storeId = Integer.parseInt(request.params(":storeId"));
+            List<Appointments> appointmentsList = appointmentsDAO.getByUserStore(userId, storeId);
             if (!appointmentsList.isEmpty()) {
                   return gson.toJson(appointmentsList);
             } else {

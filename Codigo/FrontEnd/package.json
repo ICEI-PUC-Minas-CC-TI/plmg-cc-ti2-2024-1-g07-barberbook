@@ -18,6 +18,8 @@
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.15.6",
     "@mui/material": "^5.15.6",
+    "data-fns": "^1.1.0",
+    "date-fns": "^3.6.0",
     "react": "^18.2.0",
     "react-calendar": "^4.8.0",
     "react-currency-input-field": "^3.8.0",

@@ -313,7 +313,6 @@ function AdminPage() {
                   t.time === time ? { ...t, available: !t.available } : t
             );
             setAvailableTimes(updatedAvailableTimes);
-            console.log(updatedAvailableTimes);
       };
 
       const handleDayClick = (value) => {
@@ -324,15 +323,18 @@ function AdminPage() {
             setAvailablePercentage(availablePercentage);
             setShowModal(true);
       };
-
       const save = () => {
-            const updatedAvailableTimes = availableTimes.filter(time => time.available);
-            const updatedAvailableTimesForDay = { ...availableTimesForDay };
             const selectedDay = selectedDate.toISOString().split('T')[0];
-            updatedAvailableTimesForDay[selectedDay] = updatedAvailableTimes.map(time => time.time);
+            const formattedTimes = availableTimes
+                  .filter(time => time.available)
+                  .map(time => time.time);
+            const updatedAvailableTimesForDay = {
+                  ...availableTimesForDay,
+                  [selectedDay]: formattedTimes
+            };
             localStorage.setItem('availableTimes', JSON.stringify(updatedAvailableTimesForDay));
             setShowModal(false);
-            console.log(availableTimes);
+            console.log(updatedAvailableTimesForDay);
       };
 
       return (

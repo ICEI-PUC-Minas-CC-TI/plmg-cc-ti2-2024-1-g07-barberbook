@@ -188,7 +188,7 @@ function AddAdditionalService() {
                   formData.append('price', serviceValue);
                   formData.append('store_id', storeId.storeId);
 
-                  const response = await fetch('http://localhost:6789/addservice/insert', {
+                  const response = await fetch('http://192.168.0.63:6789/addservice/insert', {
                         method: 'POST',
                         headers: {
                               'Content-Type': 'application/x-www-form-urlencoded'

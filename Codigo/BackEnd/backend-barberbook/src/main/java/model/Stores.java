@@ -9,6 +9,7 @@ public class Stores {
       private String phone_number;
       private String whatsapp;
       private String instagram;
+      private String available_times_for_day;
 
       public Stores() {
             id = -1;
@@ -19,10 +20,11 @@ public class Stores {
             phone_number = "";
             whatsapp = "";
             instagram = "";
+            available_times_for_day = "";
       }
 
       public Stores(int id, String title, String location_image_url, String location_url, String address,
-                  String phone_number, String whatsapp, String instagram) {
+                  String phone_number, String whatsapp, String instagram, String available_times_for_day) {
             setId(id);
             setTitle(title);
             setLocation_image_url(location_image_url);
@@ -31,6 +33,7 @@ public class Stores {
             setPhone_number(phone_number);
             setWhatsapp(whatsapp);
             setInstagram(instagram);
+            setAvailable_times_for_day(available_times_for_day);
       }
 
       public int getID() {
@@ -95,5 +98,13 @@ public class Stores {
 
       public void setInstagram(String instagram) {
             this.instagram = instagram;
+      }
+
+      public String getAvailable_times_for_day() {
+            return available_times_for_day;
+      }
+
+      public void setAvailable_times_for_day(String available_times_for_day) {
+            this.available_times_for_day = available_times_for_day;
       }
 }

@@ -6,6 +6,10 @@ import service.ServiceService;
 import service.UsersService;
 import service.AddServiceService;
 import service.AppointmentsService;
+import dao.StoresDAO;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Application {
     private static StoresService storesService = new StoresService();
@@ -39,11 +43,20 @@ public class Application {
             response.header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
         });
 
+        // Agendamento da execução automática da limpeza de horários expirados
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+        scheduler.scheduleAtFixedRate(() -> {
+            StoresDAO storesDAO = new StoresDAO();
+            storesDAO.limparHorariosExpirados();
+        }, 0, 24, TimeUnit.HOURS);
+
         // Definição dos endpoints
         post("/stores/insert", (request, response) -> storesService.insert(request, response));
         get("/stores/:id", (request, response) -> storesService.get(request, response));
         get("/stores/list/:orderby", (request, response) -> storesService.getAll(request, response));
         delete("/stores/delete/:id", (request, response) -> storesService.delete(request, response));
+        put("/stores/insertTimes/:storeId", (request, response) -> storesService.insertTimes(request, response));
+        get("/stores/getTimes/:id", (request, response) -> storesService.getTimes(request, response));
 
         post("/services/insert", (request, response) -> serviceService.insert(request, response));
         get("/services/:id", (request, response) -> serviceService.get(request, response));
@@ -73,6 +86,6 @@ public class Application {
         get("/appointments/store/:storeId", (request, response) -> appointmentsService.getByStoreId(request, response));
         delete("/appointments/delete/:id", (request, response) -> appointmentsService.delete(request, response));
         put("/appointments/update/:id", (request, response) -> appointmentsService.update(request, response));
+        get("/appointments/user/:userId/store/:storeId", (request, response) -> appointmentsService.getByUserStore(request, response));
     }
-
 }

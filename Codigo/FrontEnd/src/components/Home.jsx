@@ -266,13 +266,12 @@ function Home() {
 
     const fetchStoreDetails = async () => {
       try {
-        const response = await fetch(`http://localhost:6789/stores/${storeId}`);
+        const response = await fetch(`http://192.168.0.63:6789/stores/${storeId}`);
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
         const data = await response.json();
         setStores(data);
-        console.log(data);
       } catch (error) {
         console.error('Error fetching store details:', error);
         setErrorStore('Error fetching store details');
@@ -281,7 +280,7 @@ function Home() {
 
     const fetchServices = async () => {
       try {
-        const response = await fetch(`http://localhost:6789/services/store/${storeId}`);
+        const response = await fetch(`http://192.168.0.63:6789/services/store/${storeId}`);
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
@@ -301,9 +300,13 @@ function Home() {
   }, [storeId]);
 
   const handleServiceClick = (serviceId) => {
-    navigate(`/HomePage/store/${storeId}/ServicePage/${serviceId}`);
+    if (!storedUser) {
+      alert('Por favor, faça login para agendar um serviço.');
+    } else {
+      navigate(`/HomePage/store/${storeId}/ServicePage/${serviceId}`);
+    }
   };
-
+  
   const scrollToServices = () => {
     const servicesSection = document.getElementById('services');
     servicesSection.scrollIntoView({ behavior: 'smooth' });
