@@ -5,12 +5,14 @@ import service.StoresService;
 import service.ServiceService;
 import service.UsersService;
 import service.AddServiceService;
+import service.AppointmentsService;
 
 public class Application {
     private static StoresService storesService = new StoresService();
     private static ServiceService serviceService = new ServiceService();
     private static UsersService usersService = new UsersService();
     private static AddServiceService addServiceService = new AddServiceService();
+    private static AppointmentsService appointmentsService = new AppointmentsService();
 
     public static void main(String[] args) {
         port(6789);
@@ -64,6 +66,13 @@ public class Application {
         delete("/users/delete/:id", (request, response) -> usersService.delete(request, response));
         get("/users/test/:phoneNumber/:storeId", (request, response) -> usersService.test(request, response));
         post("/users/login", (request, response) -> usersService.login(request, response));
+
+        post("/appointments/insert", (request, response) -> appointmentsService.insert(request, response));
+        get("/appointments/:id", (request, response) -> appointmentsService.get(request, response));
+        get("/appointments/list/:orderby", (request, response) -> appointmentsService.getAll(request, response));
+        get("/appointments/store/:storeId", (request, response) -> appointmentsService.getByStoreId(request, response));
+        delete("/appointments/delete/:id", (request, response) -> appointmentsService.delete(request, response));
+        put("/appointments/update/:id", (request, response) -> appointmentsService.update(request, response));
     }
 
 }

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from 'react-router-dom';
 import Page from "./Page";
 import styled from "styled-components";
-import ClipLoader from "react-spinners/ClipLoader"; // Importando o componente ClipLoader
+import ClipLoader from "react-spinners/ClipLoader";
 import "../assets/css/index.css";
 
 const Header = styled.div`

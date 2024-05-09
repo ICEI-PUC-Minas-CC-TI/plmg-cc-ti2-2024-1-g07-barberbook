@@ -16,6 +16,7 @@ const Header = styled.div`
   box-sizing: border-box;
   position: fixed;
   top:0;
+  z-index: 999;
   filter: drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.20));
 `;
 
@@ -79,6 +80,7 @@ const ImgProfileWrapper = styled.div`
   background-color: var(--light-gray);      
   display: flex;
   margin: 20px auto;
+  z-index: 1;
 `;
 
 const ImgProfile = styled.img`
@@ -169,11 +171,11 @@ const ModalDiv = styled.div`
   line-height: 1.125em;
   width: 100%;
   max-width: 350px;
-  overflow-y: auto; /* Adicionando barra de rolagem ao modal */
+  overflow-y: auto;
 `;
 
 const ModalServiceList = styled.div`
-  max-height: 300px; /* Ajuste a altura máxima conforme necessário */
+  max-height: 300px;
   text-align: left;
 `;
 
