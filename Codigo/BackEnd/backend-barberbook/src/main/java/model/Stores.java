@@ -1,5 +1,7 @@
 package model;
 
+import java.sql.Time;
+
 public class Stores {
       private int id;
       private String title;
@@ -106,5 +108,16 @@ public class Stores {
 
       public void setAvailable_times_for_day(String available_times_for_day) {
             this.available_times_for_day = available_times_for_day;
+      }
+
+      public void removeAvailableTime(Time time) {
+            String[] times = available_times_for_day.split(",");
+            String newAvailableTimes = "";
+            for (String t : times) {
+                  if (!t.equals(time.toString())) {
+                        newAvailableTimes += t + ",";
+                  }
+            }
+            available_times_for_day = newAvailableTimes.substring(0, newAvailableTimes.length() - 1);
       }
 }

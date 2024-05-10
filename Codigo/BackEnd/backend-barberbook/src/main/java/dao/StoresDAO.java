@@ -91,6 +91,26 @@ public class StoresDAO extends DAO {
             }
       }
 
+      public Stores update(Stores stores) {
+            try {
+                  PreparedStatement stmt = conexao.prepareStatement(
+                              "UPDATE stores SET title = ?, location_image_url = ?, location_url = ?, address = ?, phone_number = ?, whatsapp = ?, instagram = ? WHERE id = ?");
+                  stmt.setString(1, stores.getTitle());
+                  stmt.setString(2, stores.getLocation_image_url());
+                  stmt.setString(3, stores.getLocation_url());
+                  stmt.setString(4, stores.getAddress());
+                  stmt.setString(5, stores.getPhone_number());
+                  stmt.setString(6, stores.getWhatsapp());
+                  stmt.setString(7, stores.getInstagram());
+                  stmt.setInt(8, stores.getID());
+                  stmt.executeUpdate();
+                  stmt.close();
+                  return stores;
+            } catch (SQLException e) {
+                  throw new RuntimeException(e);
+            }
+      }
+
       public String getTimes(int id) {
             String availableTimes = null;
             try {
@@ -179,16 +199,16 @@ public class StoresDAO extends DAO {
             return storesList;
       }
 
-      public Stores updateTimes(int id, String available_times_for_day) {
+      public void updateTimes(int id, JsonObject availableTimesObject, String date) {
             try {
-                  PreparedStatement stmt = conexao
-                              .prepareStatement("UPDATE stores SET available_times_for_day = ? WHERE id = ?");
-                  stmt.setString(1, available_times_for_day);
+                  PreparedStatement stmt = conexao.prepareStatement(
+                              "UPDATE stores SET available_times_for_day = CAST(? AS JSONB) WHERE id = ?");
+                  stmt.setString(1, availableTimesObject.toString());
                   stmt.setInt(2, id);
                   stmt.executeUpdate();
                   stmt.close();
-                  return get(id);
             } catch (SQLException e) {
+                  System.out.println("Failed to update times for store " + id + " on date " + date);
                   throw new RuntimeException(e);
             }
       }
@@ -200,9 +220,9 @@ public class StoresDAO extends DAO {
                   int rowsDeleted = stmt.executeUpdate();
                   stmt.close();
                   if (rowsDeleted > 0) {
-                        return new Stores(); // Return an empty Stores object to indicate success
+                        return new Stores();
                   } else {
-                        return null; // Return null to indicate failure or store not found
+                        return null;
                   }
             } catch (SQLException e) {
                   throw new RuntimeException(e);

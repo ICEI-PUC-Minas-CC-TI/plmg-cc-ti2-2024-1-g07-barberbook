@@ -160,17 +160,6 @@ const Schedules = styled.div`
   margin: 0 auto 20px;
 `;
 
-const NumberInput = styled.input`
-  width: 100%;
-  height: 40px;
-  font-size: 16px;
-  margin: 10px 0;
-  padding: 5px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-`;
-
 const Div = styled.div`
   display: flex;
   justify-content: center;
@@ -179,16 +168,19 @@ const Div = styled.div`
 `;
 
 const DivDrop = styled.div`
+  box-sizing: border-box;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  grid-template-columns: 1fr 2fr;
   width: 100%;
   max-width: 425px;
   height: fit-content;
+  justify-content: space-between;
 `;
 
 const DivHours = styled.div`
       display: flex;
+      box-sizing: border-box;
+      text-align: center;
 `;
 
 const DurationInput = styled.input`
@@ -200,6 +192,7 @@ const DurationInput = styled.input`
   border: 1px solid #ccc;
   border-radius: 4px;
   box-sizing: border-box;
+  text-align: center;
 `;
 
 const Text = styled.p`
@@ -209,7 +202,7 @@ const Text = styled.p`
 `;
 
 const OpeningInput = styled.input`
-  width: 100%;
+  min-width: 80%;
   height: 40px;
   font-size: 16px;
   margin: 10px 0;
@@ -220,7 +213,7 @@ const OpeningInput = styled.input`
 `;
 
 const ClosingInput = styled.input`
-  width: 100%;
+  min-width: 80%;
   height: 40px;
   font-size: 16px;
   margin: 10px 0;
@@ -236,6 +229,13 @@ const ButtonSave = styled(Button)`
       padding: 10px 20px;
       font-size: 16px;
       font-weight: 700;
+`;
+
+const DivHeader = styled.div`
+      display: flex;
+      justify-content: space-between;
+      flex-direction: column;
+      align-items: end;
 `;
 
 function AdminPage() {
@@ -346,8 +346,8 @@ function AdminPage() {
 
                   <DivService>
                         <DivDrop>
-                              <Div>
-                                    <Text>Selecione a duração dos horários (em minutos)</Text>
+                              <DivHeader>
+                                    <Text>Duração dos horários (min)</Text>
                                     <DurationInput
                                           type="number"
                                           min="10"
@@ -356,29 +356,29 @@ function AdminPage() {
                                           value={duration}
                                           onChange={(e) => setDuration(parseInt(e.target.value))}
                                     />
-                              </Div>
+                              </DivHeader>
 
                               <DivHours>
-                                    <Div>
+                                    <DivHeader>
                                           <Text>Horário de abertura</Text>
                                           <OpeningInput
                                                 type="time"
                                                 value={openingTime}
                                                 onChange={(e) => setOpeningTime(e.target.value)}
                                           />
-                                    </Div>
-                                    <Div>
+                                    </DivHeader>
+                                    <DivHeader>
                                           <Text>Horário de fechamento</Text>
                                           <ClosingInput
                                                 type="time"
                                                 value={closingTime}
                                                 onChange={(e) => setClosingTime(e.target.value)}
                                           />
-                                    </Div>
+                                    </DivHeader>
                               </DivHours>
                         </DivDrop>
                         <Div>
-                              <ButtonSave onClick={() => generateSchedule()}>Gerar Horários</ButtonSave>
+                              <ButtonSave style={{ marginBottom: '10px' }} onClick={() => generateSchedule()}>Gerar Horários</ButtonSave>
                         </Div>
 
                         <Calendar

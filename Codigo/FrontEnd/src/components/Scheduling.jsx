@@ -197,8 +197,7 @@ function SchedulingPage() {
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(false);
   const [storeData, setStoreData] = useState(null);
-  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-  const userId = currentUser ? currentUser.id : null;
+  const userId = JSON.parse(localStorage.getItem("currentUser")) ? JSON.parse(localStorage.getItem("currentUser")).id : null;
   const [alertTimeout, setAlertTimeout] = useState(null);
 
   useEffect(() => {
@@ -229,35 +228,42 @@ function SchedulingPage() {
     setSelectedDate(date);
   };
 
-
   const handleDayClick = (value) => {
-    const selectedDay = value.toISOString().split('T')[0];
-    const availableTimesForDayValue = storeData[selectedDay] || [];
+    const selectedDay = new Date(value.getFullYear(), value.getMonth(), value.getDate());
+    const availableTimesForDayValue = storeData[selectedDay.toISOString().split('T')[0]] || [];
+    const totalTimesForDay = availableTimesForDayValue.length;
     const currentDate = new Date();
-    const currentTime = `${currentDate.getHours()}:${currentDate.getMinutes()}`;
+    const brasilTime = currentDate.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
+    const currentTime = brasilTime.split(' ')[1];
+    const [currentHour, currentMinute] = currentTime.split(':').map(Number);
 
-    const allTimesForDay = availableTimesForDayValue;
-
-    const availableTimesForDay = availableTimesForDayValue.filter(time => {
-      if (selectedDay === currentDate.toISOString().split('T')[0]) {
+    if (
+      selectedDay >= currentDate || // Se o dia selecionado for hoje ou no futuro
+      (selectedDay.getDate() === currentDate.getDate() && selectedDay.getMonth() === currentDate.getMonth() && selectedDay.getFullYear() === currentDate.getFullYear()) // Ou se o dia selecionado for hoje
+    ) {
+      const availableTimesForDay = availableTimesForDayValue.filter(time => {
         const [hour, minute] = time.split(':').map(Number);
-        const [currentHour, currentMinute] = currentTime.split(':').map(Number);
-        if (hour > currentHour || (hour === currentHour && minute >= currentMinute)) {
-          return true;
-        }
-        return false;
-      } else {
-        return true;
-      }
-    });
 
-    const availableTimesCount = availableTimesForDay.length;
-    const availablePercentage = (availableTimesCount / allTimesForDay.length) * 100;
-    setAvailableTimes(availableTimesForDay);
-    setAvailablePercentage(availablePercentage);
-    setShowModal(true);
-    setSelectedDate(value);
-    sessionStorage.setItem('selectedDate', value.toISOString().split('T')[0]);
+        if (
+          selectedDay.toISOString().split('T')[0] === currentDate.toISOString().split('T')[0] &&
+          (hour < currentHour || (hour === currentHour && minute < currentMinute))
+        ) {
+          return false;
+        }
+        return true;
+      });
+      const availableTimesCount = availableTimesForDay.length;
+      const availablePercentage = totalTimesForDay > 0 ? (availableTimesCount / totalTimesForDay) * 100 : 0;
+
+      setAvailableTimes(availableTimesForDay);
+      setAvailablePercentage(availablePercentage);
+      setShowModal(true);
+      setSelectedDate(value);
+      sessionStorage.setItem('selectedDate', value.toISOString().split('T')[0]);
+    } else {
+      console.log(brasilTime);
+      console.log("Dia selecionado é anterior ao dia atual");
+    }
   };
 
   const createAppointmentObject = () => {
@@ -265,7 +271,6 @@ function SchedulingPage() {
     const selectedTime = new Date(parseInt(sessionStorage.getItem('selectedTime')));
     const selectedService = sessionStorage.getItem('SelectedService');
     const selectedDate = sessionStorage.getItem('selectedDate');
-    const userId = currentUser ? currentUser.id : null;
     const idService = selectedService ? JSON.parse(selectedService).id : null;
     const idAdditionalService = selectedAdditionalService ? JSON.parse(selectedAdditionalService).id : null;
     const formattedTime = `${selectedTime.getHours()}:${selectedTime.getMinutes()}:${selectedTime.getSeconds()}`;
@@ -285,42 +290,41 @@ function SchedulingPage() {
     setSelectedTime(formattedTime);
     sessionStorage.setItem('selectedTime', new Date().setHours(parseInt(time.split(':')[0]), parseInt(time.split(':')[1])));
     setAlert(true);
-  
+
     const timeout = setTimeout(() => {
       setAlert(false);
     }, 3000);
     setAlertTimeout(timeout);
-  
+
     setTimeout(async () => {
-      if (currentUser) {
+      if (userId) {
         const appointment = createAppointmentObject();
         sessionStorage.setItem('appointment', JSON.stringify(appointment));
-  
+
         const queryParams = new URLSearchParams({
           store_id: appointment.storeId,
           appointment_date: appointment.selectedDate,
-          start_time: encodeURIComponent(formattedTime), // Codificar o horário aqui
+          start_time: encodeURIComponent(formattedTime),
           user_id: appointment.userId,
           service_id: appointment.idService
         });
-  
-        // Verifica se o additional_service_id não é null nem undefined
+
         if (appointment.idAdditionalService != null) {
           queryParams.append('additional_service_id', appointment.idAdditionalService);
         }
-  
+
         try {
-          const response = await fetch(`http://localhost:6789/appointments/insert?${queryParams}`, {
+          const response = await fetch(`http://192.168.0.63:6789/appointments/insert?${queryParams}`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
             }
           });
-  
+
           if (!response.ok) {
             throw new Error('Erro ao fazer o agendamento');
           }
-  
+
           setShowModal(false);
           setAlert(false);
           clearTimeout(alertTimeout);
@@ -334,7 +338,7 @@ function SchedulingPage() {
         alert("Para fazer o agendamento, é necessário fazer login.");
       }
     }, 2500);
-  };  
+  };
 
 
   let calendarContent;
@@ -376,9 +380,12 @@ function SchedulingPage() {
               }).length;
 
               const availablePercentage = totalTimesForDay > 0 ? (availableTimesCount / totalTimesForDay) * 100 : 0;
+
+              const isPastDay = date < new Date().setHours(0, 0, 0, 0);
+
               return (
                 <AvailabilityBar>
-                  <AvailabilityBarFill availablePercentage={availablePercentage} />
+                  {isPastDay ? null : <AvailabilityBarFill availablePercentage={availablePercentage} />}
                 </AvailabilityBar>
               );
             }
@@ -412,7 +419,7 @@ function SchedulingPage() {
             )}
             <Schedules>
               {alert ? (
-                currentUser ? (
+                userId ? (
                   <P>Horário agendado, aguardamos você!</P>
                 ) : (
                   <>
@@ -423,13 +430,36 @@ function SchedulingPage() {
                 availableTimes.length === 0 ? (
                   <p>Sem horários disponíveis.</p>
                 ) : (
-                  availableTimes.map((time, index) => (
-                    <Button key={index} onClick={() => handleButtonClick(time)}>
-                      {time}
-                    </Button>
-                  ))
+                  availableTimes.map((time, index) => {
+                    const [hour, minute] = time.split(':').map(Number);
+                    const currentDate = new Date();
+                    const currentHour = currentDate.getHours();
+                    const currentMinute = currentDate.getMinutes();
+
+                    const isToday = (
+                      selectedDate.getDate() === currentDate.getDate() &&
+                      selectedDate.getMonth() === currentDate.getMonth() &&
+                      selectedDate.getFullYear() === currentDate.getFullYear()
+                    );
+
+                    const isFutureTime = (
+                      !isToday ||
+                      (isToday && (currentHour < hour || (currentHour === hour && currentMinute < minute)))
+                    );
+
+                    if (isFutureTime) {
+                      return (
+                        <Button key={index} onClick={() => handleButtonClick(time)}>
+                          {time}
+                        </Button>
+                      );
+                    } else {
+                      return null;
+                    }
+                  })
                 )
               )}
+
             </Schedules>
           </ModalDiv>
         </ModalOverlay>
@@ -437,5 +467,4 @@ function SchedulingPage() {
     </Page>
   );
 }
-
 export default SchedulingPage;
