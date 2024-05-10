@@ -191,7 +191,7 @@ function NumberPage() {
   const [ok, setOk] = useState(false);
   const [save, setSave] = useState(true);
   const [next, setNext] = useState(true);
-  const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+  const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
 
   const handleNext = () => {
     fetch(`http://192.168.0.63:6789/users/test/${number}/${parsedStoreId}`, {
@@ -250,7 +250,7 @@ function NumberPage() {
         if (data.user === "Autenticado") {
           data.logged = true; 
           const userId = data.id;
-          localStorage.setItem("currentUser", JSON.stringify(data));
+          sessionStorage.setItem("currentUser", JSON.stringify(data));
           navigate(`/HomePage/store/${parsedStoreId}/MyAccount/${userId}`);
         } else {
           setErrorMessage('Senha incorreta');
@@ -287,7 +287,7 @@ function NumberPage() {
       })
       .then(data => {
         data.logged = true;
-        localStorage.setItem('currentUser', JSON.stringify(data));
+        sessionStorage.setItem('currentUser', JSON.stringify(data));
 
         setErrorMessage('Usuário salvo com sucesso');
         setShowModal(true);

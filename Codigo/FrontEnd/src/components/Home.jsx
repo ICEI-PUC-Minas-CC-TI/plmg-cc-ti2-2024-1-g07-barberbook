@@ -257,7 +257,7 @@ function Home() {
   const [loading, setLoading] = useState(true);
   const [errorStore, setErrorStore] = useState(null);
   const [errorServices, setErrorServices] = useState(null);
-  const storedUser = JSON.parse(localStorage.getItem('currentUser'));
+  const storedUser = JSON.parse(sessionStorage.getItem('currentUser'));
 
   useEffect(() => {
     setLoading(true);

@@ -197,7 +197,7 @@ function SchedulingPage() {
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(false);
   const [storeData, setStoreData] = useState(null);
-  const userId = JSON.parse(localStorage.getItem("currentUser")) ? JSON.parse(localStorage.getItem("currentUser")).id : null;
+  const userId = JSON.parse(sessionStorage.getItem("currentUser")) ? JSON.parse(localStorage.getItem("currentUser")).id : null;
   const [alertTimeout, setAlertTimeout] = useState(null);
 
   useEffect(() => {

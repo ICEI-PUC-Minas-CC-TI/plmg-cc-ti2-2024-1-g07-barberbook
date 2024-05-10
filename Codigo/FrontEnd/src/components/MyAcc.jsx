@@ -217,7 +217,7 @@ function MyAcc() {
   const [services, setServices] = useState([]);
   const [additionalServices, setAdditionalServices] = useState([]);
   const [viewingAdditionalServices, setViewingAdditionalServices] = useState(false);
-  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+  const currentUser = JSON.parse(sessionStorage.getItem("currentUser"));
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -246,7 +246,7 @@ function MyAcc() {
 
   const handleLogout = () => {
     navigate(`/HomePage/store/${storeId}`);
-    localStorage.removeItem("currentUser");
+    sessionStorage.removeItem("currentUser");
   };
 
   const handleMyAppointments = () => {

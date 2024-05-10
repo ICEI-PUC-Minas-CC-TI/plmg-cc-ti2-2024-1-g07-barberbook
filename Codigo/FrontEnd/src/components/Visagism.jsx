@@ -86,7 +86,7 @@ function Visagism() {
   const [currentUser, setCurrentUser] = useState({});
 
   useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem("currentUser"));
+    const storedUser = JSON.parse(sessionStorage.getItem("currentUser"));
     if (!storedUser || !storedUser.logged) {
       navigate(`/HomePage/store/${storeId}/NumberPage`);
     } else {
