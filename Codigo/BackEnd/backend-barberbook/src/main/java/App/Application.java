@@ -55,7 +55,7 @@ public class Application {
         get("/stores/:id", (request, response) -> storesService.get(request, response));
         get("/stores/list/:orderby", (request, response) -> storesService.getAll(request, response));
         delete("/stores/delete/:id", (request, response) -> storesService.delete(request, response));
-        put("/stores/insertTimes/:storeId", (request, response) -> storesService.insertTimes(request, response));
+        put("/stores/insertTimes", (request, response) -> storesService.insertTimes(request, response));
         get("/stores/getTimes/:id", (request, response) -> storesService.getTimes(request, response));
 
         post("/services/insert", (request, response) -> serviceService.insert(request, response));

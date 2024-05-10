@@ -2,13 +2,10 @@ package service;
 
 import java.sql.Time;
 import java.util.List;
-import java.util.Map;
 import java.sql.Date;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
 import com.google.gson.JsonParser;
 import dao.StoresDAO;
 import model.Stores;
@@ -26,8 +23,10 @@ public class StoresService {
                   if (stores != null) {
                         String availableTimesJson = request.body();
                         if (availableTimesJson != null && !availableTimesJson.isEmpty()) {
-                              stores.setAvailable_times_for_day(availableTimesJson);
-                              storesDAO.update(stores);
+                              JsonObject newAvailableTimesObject = JsonParser.parseString(availableTimesJson)
+                                          .getAsJsonObject();
+                              storesDAO.insertTimes(id, newAvailableTimesObject);
+
                               response.status(200);
                               return "{\"message\": \"Available times updated successfully\"}";
                         } else {

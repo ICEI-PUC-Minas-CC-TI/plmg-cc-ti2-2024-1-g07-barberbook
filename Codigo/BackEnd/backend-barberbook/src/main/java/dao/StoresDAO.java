@@ -128,28 +128,42 @@ public class StoresDAO extends DAO {
             }
       }
 
-      public Stores insertTimes(int id, JsonElement newAvailableTimes) {
+      public String insertTimes(int id, JsonObject newAvailableTimes) {
             try {
                   String existingTimesJson = getTimes(id);
                   JsonObject existingTimesObject = new JsonObject();
                   if (existingTimesJson != null) {
                         existingTimesObject = JsonParser.parseString(existingTimesJson).getAsJsonObject();
                   }
-                  JsonObject newAvailableTimesObject = newAvailableTimes.getAsJsonObject();
-                  for (Map.Entry<String, JsonElement> entry : newAvailableTimesObject.entrySet()) {
+                  for (Map.Entry<String, JsonElement> entry : newAvailableTimes.entrySet()) {
                         String date = entry.getKey();
                         JsonArray timesArray = entry.getValue().getAsJsonArray();
-                        existingTimesObject.add(date, timesArray);
+                        JsonArray existingTimesArray = existingTimesObject.getAsJsonArray(date);
+                        if (existingTimesArray == null) {
+                              existingTimesObject.add(date, timesArray);
+                        } else {
+                              for (JsonElement time : timesArray) {
+                                    if (!existingTimesArray.contains(time)) {
+                                          existingTimesArray.add(time);
+                                    }
+                              }
+                        }
                   }
-
                   PreparedStatement stmt = conexao
                               .prepareStatement("UPDATE stores SET available_times_for_day = ? WHERE id = ?");
                   stmt.setObject(1, existingTimesObject.toString(), Types.OTHER);
                   stmt.setInt(2, id);
                   stmt.executeUpdate();
                   stmt.close();
-                  return get(id);
+
+                  System.out.println("Store ID: " + id);
+                  System.out.println("New available times: " + newAvailableTimes.toString());
+                  System.out.println("Available times inserted successfully");
+
+                  return existingTimesObject.toString();
             } catch (SQLException e) {
+                  System.out.println(e.getMessage());
+                  System.out.println("Failed to insert available times for store " + id);
                   throw new RuntimeException(e);
             }
       }

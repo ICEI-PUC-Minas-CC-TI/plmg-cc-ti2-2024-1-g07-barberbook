@@ -323,19 +323,39 @@ function AdminPage() {
             setAvailablePercentage(availablePercentage);
             setShowModal(true);
       };
+
       const save = () => {
             const selectedDay = selectedDate.toISOString().split('T')[0];
             const formattedTimes = availableTimes
-                  .filter(time => time.available)
+                  .filter(time => time.available) 
                   .map(time => time.time);
+
             const updatedAvailableTimesForDay = {
-                  ...availableTimesForDay,
                   [selectedDay]: formattedTimes
             };
-            localStorage.setItem('availableTimes', JSON.stringify(updatedAvailableTimesForDay));
-            setShowModal(false);
-            console.log(updatedAvailableTimesForDay);
+
+            const requestOptions = {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(updatedAvailableTimesForDay) 
+            };
+
+            console.log(JSON.stringify(updatedAvailableTimesForDay));
+
+            fetch(`http://192.168.0.63:6789/stores/insertTimes?id=${storeId}`, requestOptions)
+                  .then(response => {
+                        if (!response.ok) {
+                              throw new Error('Failed to update available times');
+                        }
+                        setShowModal(false);
+                        alert('Horários disponibilizados com sucesso');
+                  })
+                  .catch(error => {
+                        console.error('Error:', error);
+                        setErrorMessage('Failed to update available times');
+                  });
       };
+
 
       return (
             <Page>
