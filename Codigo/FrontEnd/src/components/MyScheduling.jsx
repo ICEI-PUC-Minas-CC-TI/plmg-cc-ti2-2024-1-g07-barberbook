@@ -197,7 +197,20 @@ function MyScheduling() {
     const monthName = parts[0].slice(0, 3);
     const day = parseInt(parts[0].slice(4));
 
-    const date = new Date(0, 0, day);
+    const monthAbbreviations = {
+      jan: 0, fev: 1, mar: 2, abr: 3, mai: 4, jun: 5,
+      jul: 6, ago: 7, set: 8, out: 9, nov: 10, dez: 11
+    };
+
+    const month = monthAbbreviations[monthName.toLowerCase()];
+
+    const currentYear = (new Date()).getFullYear();
+    let date = new Date(currentYear, month, day);
+
+    if (date.getMonth() !== month) {
+      date = new Date(currentYear, month - 1, day);
+    }
+
     const options = { weekday: 'long', day: 'numeric' };
     return `${date.toLocaleDateString('pt-BR', options)}, ${monthName}`;
   };

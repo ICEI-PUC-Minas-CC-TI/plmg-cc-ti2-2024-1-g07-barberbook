@@ -180,9 +180,11 @@ const LoadingContainerStyles = styled.div`
   height: 100svh;
   max-width: 425px;
   display: flex;
+  flex-direction: column;
+  color: var(--primary);
   justify-content: center;
   align-items: center;
-  background-color: rgba(255, 255, 255, 0.8);
+  background-color: transparent;
   z-index: 999;
 `;
 
@@ -195,10 +197,11 @@ function SchedulingPage() {
   const [availableTimes, setAvailableTimes] = useState([]);
   const [availablePercentage, setAvailablePercentage] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [alert, setAlert] = useState(false);
+  const [alerts, setAlerts] = useState(false);
   const [storeData, setStoreData] = useState(null);
-  const userId = JSON.parse(sessionStorage.getItem("currentUser")) ? JSON.parse(localStorage.getItem("currentUser")).id : null;
-  const [alertTimeout, setAlertTimeout] = useState(null);
+  const [loadingAppointment, setLoadingAppointment] = useState(false);
+  const userId = JSON.parse(sessionStorage.getItem("currentUser")) ? JSON.parse(sessionStorage.getItem("currentUser")).id : null;
+  const [alertsTimeout, setAlertsTimeout] = useState(null);
 
   useEffect(() => {
     const fetchTimes = async () => {
@@ -238,8 +241,8 @@ function SchedulingPage() {
     const [currentHour, currentMinute] = currentTime.split(':').map(Number);
 
     if (
-      selectedDay >= currentDate || // Se o dia selecionado for hoje ou no futuro
-      (selectedDay.getDate() === currentDate.getDate() && selectedDay.getMonth() === currentDate.getMonth() && selectedDay.getFullYear() === currentDate.getFullYear()) // Ou se o dia selecionado for hoje
+      selectedDay >= currentDate ||
+      (selectedDay.getDate() === currentDate.getDate() && selectedDay.getMonth() === currentDate.getMonth() && selectedDay.getFullYear() === currentDate.getFullYear())
     ) {
       const availableTimesForDay = availableTimesForDayValue.filter(time => {
         const [hour, minute] = time.split(':').map(Number);
@@ -289,12 +292,9 @@ function SchedulingPage() {
     const formattedTime = `${time}:00`;
     setSelectedTime(formattedTime);
     sessionStorage.setItem('selectedTime', new Date().setHours(parseInt(time.split(':')[0]), parseInt(time.split(':')[1])));
-    setAlert(true);
-
-    const timeout = setTimeout(() => {
-      setAlert(false);
-    }, 3000);
-    setAlertTimeout(timeout);
+    setAlerts(true);
+    clearTimeout(alertsTimeout);
+    setLoadingAppointment(true);
 
     setTimeout(async () => {
       if (userId) {
@@ -325,9 +325,7 @@ function SchedulingPage() {
             throw new Error('Erro ao fazer o agendamento');
           }
 
-          setShowModal(false);
-          setAlert(false);
-          clearTimeout(alertTimeout);
+          alert("Agendamento realizado com sucesso!");
           navigate(`/HomePage/store/${storeId}/MyAccount/${userId}`);
         } catch (error) {
           console.error('Erro ao fazer o agendamento:', error);
@@ -337,6 +335,8 @@ function SchedulingPage() {
         navigate(`/HomePage/store/${storeId}/NumberPage`);
         alert("Para fazer o agendamento, é necessário fazer login.");
       }
+
+      setLoadingAppointment(false); // Esconde a animação após a resposta da API
     }, 2500);
   };
 
@@ -411,22 +411,14 @@ function SchedulingPage() {
       {showModal && (
         <ModalOverlay>
           <ModalDiv>
-            {alert ? null : (
+            {alerts ? null : (
               <HeaderModal>
                 <H_2>Horários Disponíveis</H_2>
                 <Exit onClick={() => setShowModal(false)}>x</Exit>
               </HeaderModal>
             )}
             <Schedules>
-              {alert ? (
-                userId ? (
-                  <P>Horário agendado, aguardamos você!</P>
-                ) : (
-                  <>
-                    <P>Para fazer o agendamento, é necessário fazer login.</P>
-                  </>
-                )
-              ) : (
+              {alerts ? null : (
                 availableTimes.length === 0 ? (
                   <p>Sem horários disponíveis.</p>
                 ) : (
@@ -459,12 +451,18 @@ function SchedulingPage() {
                   })
                 )
               )}
-
             </Schedules>
+            {loadingAppointment && (
+              <LoadingContainerStyles>
+                <ClipLoader loading={true} size={80} color={"var(--primary)"} />
+                <P style={{color:'var(--primary)', fontWeight:'bold'}}>Realizando agendamento...</P>
+              </LoadingContainerStyles>
+            )}
           </ModalDiv>
         </ModalOverlay>
       )}
     </Page>
   );
 }
+
 export default SchedulingPage;
