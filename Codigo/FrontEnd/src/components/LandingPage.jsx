@@ -291,7 +291,7 @@ function LandingPage() {
   useEffect(() => {
     const fetchStores = async () => {
       try {
-        const response = await fetch('http://192.168.0.63:6789/stores/list/1', {
+        const response = await fetch('http://localhost:6789/stores/list/1', {
           method: 'GET',
           mode: 'cors'
         });

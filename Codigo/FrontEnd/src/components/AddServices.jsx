@@ -201,7 +201,7 @@ function AddService() {
             requestBody.append('price', parseFloat(serviceValue));
             requestBody.append('store_id', storeId);
 
-            const response = await fetch('http://192.168.0.63:6789/services/insert', {
+            const response = await fetch('http://localhost:6789/services/insert', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',

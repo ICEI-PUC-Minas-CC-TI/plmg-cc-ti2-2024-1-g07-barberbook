@@ -206,7 +206,7 @@ function SchedulingPage() {
   useEffect(() => {
     const fetchTimes = async () => {
       try {
-        const response = await fetch(`http://192.168.0.63:6789/stores/getTimes/${storeId}`);
+        const response = await fetch(`http://localhost:6789/stores/getTimes/${storeId}`);
         if (!response.ok) {
           throw new Error('Erro ao carregar os horários');
         }
@@ -314,7 +314,7 @@ function SchedulingPage() {
         }
 
         try {
-          const response = await fetch(`http://192.168.0.63:6789/appointments/insert?${queryParams}`, {
+          const response = await fetch(`http://localhost:6789/appointments/insert?${queryParams}`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'

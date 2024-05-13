@@ -342,7 +342,7 @@ function AdminPage() {
 
             console.log(JSON.stringify(updatedAvailableTimesForDay));
 
-            fetch(`http://192.168.0.63:6789/stores/insertTimes?id=${storeId}`, requestOptions)
+            fetch(`http://localhost:6789/stores/insertTimes?id=${storeId}`, requestOptions)
                   .then(response => {
                         if (!response.ok) {
                               throw new Error('Failed to update available times');

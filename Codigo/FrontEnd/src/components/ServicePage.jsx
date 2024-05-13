@@ -146,7 +146,7 @@ function ServicePage() {
 
   useEffect(() => {
     setIsLoading(true);
-    fetch(`http://192.168.0.63:6789/services/${serviceId}`)
+    fetch(`http://localhost:6789/services/${serviceId}`)
       .then(response => response.json())
       .then(data => {
         setService(data);

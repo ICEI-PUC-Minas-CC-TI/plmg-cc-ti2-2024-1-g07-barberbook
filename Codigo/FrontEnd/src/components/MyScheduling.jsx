@@ -154,7 +154,7 @@ function MyScheduling() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`http://192.168.0.63:6789/appointments/user/${userId}/store/${storeId}`)
+    fetch(`http://localhost:6789/appointments/user/${userId}/store/${storeId}`)
       .then((response) => response.json())
       .then((data) => {
         setAppointments(data);
@@ -168,7 +168,7 @@ function MyScheduling() {
   useEffect(() => {
     if (appointments.length > 0) {
       const serviceIds = appointments.map((appointment) => appointment.serviceId);
-      fetch(`http://192.168.0.63:6789/services/list/1}`)
+      fetch(`http://localhost:6789/services/list/1}`)
         .then((response) => response.json())
         .then((data) => {
           setServices(data);
@@ -224,7 +224,7 @@ function MyScheduling() {
   };
 
   const deleteAppointment = (id) => {
-    fetch(`http://192.168.0.63:6789/appointments/delete/${id}`, {
+    fetch(`http://localhost:6789/appointments/delete/${id}`, {
       method: 'DELETE',
     })
       .then((response) => {

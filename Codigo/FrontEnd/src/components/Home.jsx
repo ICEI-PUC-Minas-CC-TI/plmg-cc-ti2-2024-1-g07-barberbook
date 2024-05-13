@@ -266,7 +266,7 @@ function Home() {
 
     const fetchStoreDetails = async () => {
       try {
-        const response = await fetch(`http://192.168.0.63:6789/stores/${storeId}`);
+        const response = await fetch(`http://localhost:6789/stores/${storeId}`);
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
@@ -280,7 +280,7 @@ function Home() {
 
     const fetchServices = async () => {
       try {
-        const response = await fetch(`http://192.168.0.63:6789/services/store/${storeId}`);
+        const response = await fetch(`http://localhost:6789/services/store/${storeId}`);
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
