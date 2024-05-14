@@ -74,6 +74,7 @@ public class Application {
 
         post("/users/insert", (request, response) -> usersService.insert(request, response));
         get("/users/:id", (request, response) -> usersService.get(request, response));
+        get("/user/:id", (request, response) -> usersService.getUser(request, response));
         // put("/users/update/:id", (request, response) -> usersService.update(request,
         // response));
         delete("/users/delete/:id", (request, response) -> usersService.delete(request, response));

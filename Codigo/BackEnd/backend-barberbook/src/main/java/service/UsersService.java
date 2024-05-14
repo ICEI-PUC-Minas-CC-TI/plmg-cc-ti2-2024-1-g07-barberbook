@@ -108,6 +108,32 @@ public class UsersService {
         }
     }
 
+    public String getUser(Request request, Response response) {
+        try {
+            String idParam = request.params(":id");
+            if (idParam == null || idParam.isEmpty()) {
+                response.status(400);
+                return "{\"error\": \"Missing user ID\"}";
+            }
+     
+            int id = Integer.parseInt(idParam);
+            Users user = usersDAO.get(id);
+            if (user != null) {
+                response.status(200);
+                return "{\"id\": " + user.getId() + ", \"name\": \"" + user.getName() + "\", \"store_id\": " + user.getStoreId() + ", \"phone_number\": \"" + user.getPhoneNumber() + "\"}";
+            } else {
+                response.status(404);
+                return "{\"error\": \"User not found\"}";
+            }
+        } catch (NumberFormatException e) {
+            response.status(400);
+            return "{\"error\": \"Invalid user ID\"}";
+        } catch (RuntimeException e) {
+            response.status(500);
+            return "{\"error\": \"Failed to retrieve user\"}";
+        }
+     }
+
     public String delete(Request request, Response response) {
         try {
             String idParam = request.params(":id");

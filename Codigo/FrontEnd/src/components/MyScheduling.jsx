@@ -3,8 +3,6 @@ import Page from "./Page";
 import styled from "styled-components";
 import { useNavigate, useParams } from 'react-router-dom';
 import TrashIcon from '@mui/icons-material/Delete';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { ClipLoader } from "react-spinners";
 
 const H1 = styled.h1`

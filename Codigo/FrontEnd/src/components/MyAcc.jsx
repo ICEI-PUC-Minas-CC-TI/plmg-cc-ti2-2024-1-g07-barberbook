@@ -262,7 +262,7 @@ function MyAcc() {
   };
 
   const handleMonthlyActivity = () => {
-    // Rota para atividade mensal
+    navigate(`/HomePage/store/${storeId}/Activity/${userId}`);
   };
 
   const handleAddService = () => {

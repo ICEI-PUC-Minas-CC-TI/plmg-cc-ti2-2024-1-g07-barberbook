@@ -14,6 +14,7 @@ import StoreRegister from './components/StoreRegister';
 import MyScheduling from './components/MyScheduling';
 import AddService from './components/AddServices';
 import AddAdditionalService from './components/AddAdditionalService';
+import Activity from './components/Activity';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
         <Route path="/HomePage/store/:storeId/MyScheduling/:userId/" element={<MyScheduling />} />
         <Route path="/HomePage/store/:storeId/AddService/:userId/" element={<AddService />} />
         <Route path="/HomePage/store/:storeId/AddAdditionalService/:userId/" element={<AddAdditionalService />} />
+        <Route path="/HomePage/store/:storeId/Activity/:userId/" element={<Activity />} />
       </Routes>
     </Router>
   );
