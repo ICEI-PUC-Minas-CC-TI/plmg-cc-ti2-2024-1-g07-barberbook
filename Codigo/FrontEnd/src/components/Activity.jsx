@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from 'react-router-dom';
 import Page from "./Page";
 import styled from "styled-components";
 import ClipLoader from "react-spinners/ClipLoader";
-import { set } from "date-fns";
 
 const Header = styled.div`
   width: 100%;
@@ -28,6 +27,12 @@ const H_1 = styled.h1`
   color: var(--black);
   margin: 0;
 `;
+
+const H_2 = styled.h2`
+      font-size: 20px;
+      font-style: normal;
+      margin: 1rem;
+`
 
 const P = styled.p`
   font-size: 18px;
@@ -60,7 +65,7 @@ const Exit = styled.button`
 `;
 
 const DivService = styled.div`
-  padding: 100px 20px 100px;
+  padding: 100px 20px 20px;
   color: var(--black);
   text-decoration: none;
   text-align: center;
@@ -122,7 +127,7 @@ function Activity() {
 
       useEffect(() => {
             fetchData(`http://localhost:6789/appointments/store/${storeId}`, setAppointments);
-      }, [storeId]);
+      }, [storeId]); // Only fetch appointments when storeId changes
 
       useEffect(() => {
             if (appointments.length > 0) {
@@ -169,7 +174,44 @@ function Activity() {
             }
       }, [appointments, storeId]);
 
+      function traduzMesParaNumero(mesNome) {
+            const meses = {
+                  "jan.": 0, "fev.": 1, "mar.": 2, "abr.": 3, "mai.": 4, "jun.": 5,
+                  "jul.": 6, "ago.": 7, "set.": 8, "out.": 9, "nov.": 10, "dez.": 11
+            };
+            return meses[mesNome.toLowerCase()];
+      }
+
+      function formatDate(dataString) {
+            // Verificar se a data já está no formato correto
+            if (/\d{4}\/\d{2}\/\d{2}/.test(dataString)) {
+                  return dataString;
+            }
+
+            // Dividir a string de data em partes
+            const partesData = dataString.split(' ');
+            if (partesData.length !== 3) {
+                  throw new Error('Formato de data inválido: ' + dataString);
+            }
+
+            // Extrair dia, mês e ano
+            const dia = parseInt(partesData[1], 10);
+            const mesNome = partesData[0];
+            const ano = parseInt(partesData[2], 10);
+
+            // Converter mês de nome para número
+            const mesNumero = traduzMesParaNumero(mesNome);
+
+            // Formar a string no formato yyyy-mm-dd
+            const dataFormatada = `${ano}-${(mesNumero + 1).toString().padStart(2, '0')}-${dia.toString().padStart(2, '0')}`;
+
+            // Retornar data no formato yyyy/mm/dd
+            return dataFormatada.replace(/-/g, '/');
+      }
+
+
       const convertTo24Hour = (time12h) => {
+            if (!time12h) return "";
             const [time, modifier] = time12h.split(' ');
             const [hours, minutes, seconds] = time.split(':');
             let hours24h = parseInt(hours, 10);
@@ -182,98 +224,151 @@ function Activity() {
             return formattedTime;
       };
 
+
       const formatWeekday = (dateString) => {
             if (!dateString) return "Data não informada";
 
-            const parts = dateString.split(', ');
-            const monthName = parts[0].slice(0, 3);
-            const day = parseInt(parts[0].slice(4));
-
+            const [year, month, day] = dateString.split("/");
             const monthAbbreviations = {
-                  jan: 0, fev: 1, mar: 2, abr: 3, mai: 4, jun: 5,
-                  jul: 6, ago: 7, set: 8, out: 9, nov: 10, dez: 11
+                  "01": "jan", "02": "fev", "03": "mar", "04": "abr",
+                  "05": "mai", "06": "jun", "07": "jul", "08": "ago",
+                  "09": "set", "10": "out", "11": "nov", "12": "dez"
             };
 
-            const month = monthAbbreviations[monthName.toLowerCase()];
-
-            const currentYear = (new Date()).getFullYear();
-            let date = new Date(currentYear, month, day);
-
-            if (date.getMonth() !== month) {
-                  date = new Date(currentYear, month - 1, day);
-            }
+            const monthName = monthAbbreviations[month];
+            const dateObj = new Date(year, parseInt(month) - 1, day);
 
             const options = { weekday: 'long', day: 'numeric' };
-            return `${date.toLocaleDateString('pt-BR', options)}, ${monthName}`;
+            return `${dateObj.toLocaleDateString('pt-BR', options)}, ${monthName}`;
       };
+
+      const sortAppointments = useCallback(() => {
+            const sortedAppointments = [...appointments].sort((a, b) => {
+                  const formattedDateA = formatDate(a.appointmentsDate);
+                  const formattedDateB = formatDate(b.appointmentsDate);
+                  const formattedTimeA = convertTo24Hour(a.startTime);
+                  const formattedTimeB = convertTo24Hour(b.startTime);
+
+                  if (formattedDateA !== formattedDateB) {
+                        return formattedDateA.localeCompare(formattedDateB);
+                  } else {
+                        return formattedTimeA.localeCompare(formattedTimeB);
+                  }
+            });
+
+            return sortedAppointments;
+      }, [appointments]);
+
+      const categorizeAppointments = useCallback(() => {
+            const today = new Date();
+            const currentHour = today.getHours(); // Horário atual em número
+            const currentMinute = today.getMinutes(); // Minutos atuais em número
+
+            const todayAppointments = [];
+            const futureAppointments = [];
+            const pastAppointments = [];
+
+            const sortedAppointments = sortAppointments();
+
+            sortedAppointments.forEach((appointment) => {
+                  const formattedDate = formatDate(appointment.appointmentsDate);
+                  const appointmentDate = new Date(formattedDate);
+                  const startTime = convertTo24Hour(appointment.startTime); // Horário do compromisso em string
+                  const [appointmentHour, appointmentMinute] = startTime.split(':').map(Number); // Convertendo o horário do compromisso para número
+
+                  if (appointmentDate.getFullYear() === today.getFullYear() &&
+                        appointmentDate.getMonth() === today.getMonth() &&
+                        appointmentDate.getDate() === today.getDate()) {
+                        if (appointmentHour > currentHour || (appointmentHour === currentHour && appointmentMinute >= currentMinute)) {
+                              todayAppointments.push(appointment);
+                        } else {
+                              pastAppointments.push(appointment);
+                        }
+                  } else if (appointmentDate > today) {
+                        futureAppointments.push(appointment);
+                  } else {
+                        pastAppointments.push(appointment);
+                  }
+            });
+
+            return { todayAppointments, futureAppointments, pastAppointments };
+      }, [sortAppointments]);
+
+
+
+      const renderAppointmentsByCategory = useCallback(() => {
+            const { todayAppointments, futureAppointments, pastAppointments } = categorizeAppointments();
+
+            const renderCategory = (category, categoryName) => {
+                  if (category.length === 0) {
+
+                        return (
+                              <>
+                                    <H_2>{categoryName}({category.length})</H_2>
+                                    <p>Sem agendamentos</p>
+                              </>
+                        );
+                  }
+
+                  return (
+                        <React.Fragment key={categoryName}>
+                              <H_2>{categoryName}({category.length})</H_2>
+                              {category.map((appointment, index) => {
+                                    const formattedTime = convertTo24Hour(appointment.startTime);
+                                    const totalPrice = (services[index]?.price || 0) + (addServices[index]?.price || 0);
+                                    const formattedDate = formatDate(appointment.appointmentsDate);
+                                    const formattedWeekday = formatWeekday(formattedDate);
+
+                                    return (
+                                          <Service key={index}>
+                                                <P>
+                                                      <strong>Nome:</strong> {users[index]?.name || "Nome não informado"}<br />
+                                                      <strong>Telefone:</strong> {users[index]?.phone_number || "Telefone não informado"} <br />
+                                                      <strong>Data:</strong> {formattedWeekday || "Data não informada"} <br />
+                                                      <strong>Horário:</strong> {formattedTime || "Hora não informada"} <br />
+                                                      <strong>Serviço:</strong> {services[index]?.title || "Serviço não informado"} <br />
+                                                      {appointment.additionalServiceId !== 1 && (
+                                                            <React.Fragment>
+                                                                  <strong>Adicional:</strong> {addServices[index]?.title} <br />
+                                                            </React.Fragment>
+                                                      )}
+                                                      <strong>Valor:</strong> R$ {totalPrice.toFixed(2) || "Valor não informado"} <br />
+                                                </P>
+                                          </Service>
+                                    );
+                              })}
+                        </React.Fragment>
+                  );
+            };
+
+            return (
+                  <React.Fragment>
+                        {renderCategory(todayAppointments, "Agendamentos de hoje")}
+                        {renderCategory(futureAppointments, "Agendamentos futuros")}
+                        {renderCategory(pastAppointments, "Agendamentos passados")}
+                        <P>Total de agendamentos: {appointments.length} <br /> Valor total: R$ {appointments.reduce((total, appointment, index) => {
+                              const totalPrice = (services[index]?.price || 0) + (addServices[index]?.price || 0);
+                              return total + totalPrice;
+                        }, 0).toFixed(2)}</P>
+                  </React.Fragment>
+            );
+      }, [categorizeAppointments, users, services, addServices, appointments]);
 
       return currentUser && currentUser.logged ? (
             <Page>
                   <Header>
                         <H_1>Agendamentos</H_1>
-                        <Exit onClick={() => navigate(`/HomePage/store/${storeId}`)}>X</Exit>
+                        <Exit onClick={() => navigate(-1)}>X</Exit>
                   </Header>
-                  {loading ? (
-                        <LoadingContainerStyles>
-                              <ClipLoader loading={true} size={80} color={"var(--primary)"} />
-                        </LoadingContainerStyles>
-                  ) : (
-                        <DivService>
-                              {appointments
-                                    // Primeiro, ordenamos os agendamentos por data e hora
-                                    .sort((a, b) => {
-                                          const dateA = new Date(a.appointmentsDate);
-                                          const dateB = new Date(b.appointmentsDate);
-
-                                          // Comparamos as datas
-                                          if (dateA < dateB) return -1;
-                                          if (dateA > dateB) return 1;
-
-                                          // Se as datas forem iguais, comparamos os horários
-                                          const timeA = a.startTime ? convertTo24Hour(a.startTime) : '';
-                                          const timeB = b.startTime ? convertTo24Hour(b.startTime) : '';
-                                          const timePartsA = timeA.split(':').map(part => parseInt(part));
-                                          const timePartsB = timeB.split(':').map(part => parseInt(part));
-
-                                          if (timePartsA[0] < timePartsB[0]) return -1; // Comparação das horas
-                                          if (timePartsA[0] > timePartsB[0]) return 1;
-                                          if (timePartsA[1] < timePartsB[1]) return -1; // Comparação dos minutos
-                                          if (timePartsA[1] > timePartsB[1]) return 1;
-
-                                          return 0; // Caso os horários sejam iguais
-                                    })
-                                    // Agora que os agendamentos estão ordenados, mapeamos e renderizamos
-                                    .map((appointment, index) => {
-                                          let totalPrice = 0;
-                                          if (services[index]) {
-                                                totalPrice += services[index].price;
-                                          }
-                                          if (addServices[index] && addServices[index].id !== 1) {
-                                                totalPrice += addServices[index].price;
-                                          }
-
-                                          const formattedTime = appointment.startTime ? convertTo24Hour(appointment.startTime) : null;
-
-                                          return (
-                                                <Service key={index}>
-                                                      <P>
-                                                            <strong>Nome:</strong> {users[index]?.name || "Nome não informado"}<br />
-                                                            <strong>Telefone:</strong> {users[index]?.phone_number || "Telefone não informado"} <br />
-                                                            <strong>Data:</strong> {formatWeekday(appointment.appointmentsDate) || "Data não informada"} <br />
-                                                            <strong>Hora:</strong> {formattedTime || "Hora não informada"} <br />
-                                                            <strong>Serviço:</strong> {services[index]?.title || "Serviço não informado"} <br />
-                                                            {appointment.additionalServiceId !== 1 && (
-                                                                  <React.Fragment>
-                                                                        <strong>Adicional:</strong> {addServices[index]?.title} <br />
-                                                                  </React.Fragment>
-                                                            )}
-                                                            <strong>Valor:</strong> {totalPrice.toFixed(2) || "Valor não informado"} <br />
-                                                      </P>
-                                                </Service>
-                                          );
-                                    })}
-                        </DivService>
-                  )}
+                  <DivService>
+                        {loading ? (
+                              <LoadingContainerStyles>
+                                    <ClipLoader loading={true} size={80} color={"var(--primary)"} />
+                              </LoadingContainerStyles>
+                        ) : (
+                              renderAppointmentsByCategory()
+                        )}
+                  </DivService>
             </Page>
       ) : null;
 }

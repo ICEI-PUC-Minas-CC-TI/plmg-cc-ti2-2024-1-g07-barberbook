@@ -161,6 +161,7 @@ const Search = styled.input`
   border: none;
   background-color: transparent;
   outline: none;  
+  z-index:4;
 
   &::placeholder {
     color: var(--secondary);
@@ -192,7 +193,7 @@ const SearchResultDropdown = styled.div`
     overflow-y: auto;
     background-color: var(--secondary);
     border-radius: 0 0 5px 5px;
-    z-index: 999;
+    z-index: 2;
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
 
     &::-webkit-scrollbar {
@@ -210,7 +211,7 @@ const SearchResultDropdown = styled.div`
 
     @media screen and (max-width: 425px) {
       max-width: 80%;
-      top: 9vh;
+      top: 10vh;
     }
 `;
 
@@ -224,6 +225,7 @@ const stylesDropdown = {
 }
 
 const SearchResultItem = styled.div`
+  z-index: 1;
   padding: 10px;
   color: var(--primary);
   background-color: transparent;

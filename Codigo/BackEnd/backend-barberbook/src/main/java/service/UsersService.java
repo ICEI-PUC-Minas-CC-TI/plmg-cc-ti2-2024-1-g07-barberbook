@@ -1,59 +1,56 @@
 package service;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
 import dao.UsersDAO;
 import model.Users;
 import spark.Request;
 import spark.Response;
 
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
 
 public class UsersService {
     private UsersDAO usersDAO = new UsersDAO();
     private Gson gson = new Gson();
 
     public String insert(Request request, Response response) {
-    try {
-        // Extrai os dados da requisição
-        String name = request.queryParams("name");
-        String storeIdParam = request.queryParams("store_id");
-        String phoneNumber = request.queryParams("phone_number");
-        String password = request.queryParams("password_hash");
-        String type = request.queryParams("type");
+        try {
+            // Extrai os dados da requisição
+            String name = request.queryParams("name");
+            String storeIdParam = request.queryParams("store_id");
+            String phoneNumber = request.queryParams("phone_number");
+            String password = request.queryParams("password_hash");
+            String type = request.queryParams("type");
 
-        // Cria um mapa para armazenar os dados do usuário
-        Map<String, String> userData = new HashMap<>();
-        userData.put("name", name);
-        userData.put("store_id", storeIdParam);
-        userData.put("phone_number", phoneNumber);
-        userData.put("password_hash", password);
-        userData.put("type", type != null ? type : "client");
+            // Gera o hash MD5 da senha
+            String passwordHash = hashPassword(password);
 
-        // Insere o usuário usando o método insert da classe UsersDAO
-        Users insertedUser = usersDAO.insert(userData);
+            // Cria um mapa para armazenar os dados do usuário
+            Map<String, String> userData = new HashMap<>();
+            userData.put("name", name);
+            userData.put("store_id", storeIdParam);
+            userData.put("phone_number", phoneNumber);
+            userData.put("password_hash", passwordHash);
+            userData.put("type", type != null ? type : "client");
 
-        response.status(201);
-        return toJson(insertedUser);
-    } catch (NumberFormatException e) {
-        response.status(400);
-        System.out.println(e);
-        return "{\"error\": \"Invalid input data\"}";
-    } catch (RuntimeException e) {
-        response.status(500);
-        System.out.println(e);
-        return "{\"error\": \"Failed to insert user\"}";
+            // Insere o usuário usando o método insert da classe UsersDAO
+            Users insertedUser = usersDAO.insert(userData);
+
+            response.status(201);
+            return toJson(insertedUser);
+        } catch (NumberFormatException e) {
+            response.status(400);
+            System.out.println(e);
+            return "{\"error\": \"Invalid input data\"}";
+        } catch (RuntimeException e) {
+            response.status(500);
+            System.out.println(e);
+            return "{\"error\": \"Failed to insert user\"}";
+        }
     }
-}
-
 
     public String login(Request request, Response response) {
         try {
@@ -62,9 +59,8 @@ public class UsersService {
             String storeIdParam = request.queryParams("store_id");
             int storeId = Integer.parseInt(storeIdParam);
             Users user = usersDAO.login(phoneNumber, password, storeId);
-            String pass = user.getPasswordHash();
-            System.out.println(password + " " + pass);
-            if (password.equals(pass)) {
+            String passwordHash = hashPassword(password);
+            if (passwordHash.equals(user.getPasswordHash())) {
                 response.status(200);
                 return "{\"user\": \"Autenticado\", \"id\": " + user.getId() + ", \"type\": \"" + user.getType()
                         + "\", \"name\": \"" + user.getName() + "\"}";
@@ -115,12 +111,13 @@ public class UsersService {
                 response.status(400);
                 return "{\"error\": \"Missing user ID\"}";
             }
-     
+
             int id = Integer.parseInt(idParam);
             Users user = usersDAO.get(id);
             if (user != null) {
                 response.status(200);
-                return "{\"id\": " + user.getId() + ", \"name\": \"" + user.getName() + "\", \"store_id\": " + user.getStoreId() + ", \"phone_number\": \"" + user.getPhoneNumber() + "\"}";
+                return "{\"id\": " + user.getId() + ", \"name\": \"" + user.getName() + "\", \"store_id\": "
+                        + user.getStoreId() + ", \"phone_number\": \"" + user.getPhoneNumber() + "\"}";
             } else {
                 response.status(404);
                 return "{\"error\": \"User not found\"}";
@@ -132,7 +129,7 @@ public class UsersService {
             response.status(500);
             return "{\"error\": \"Failed to retrieve user\"}";
         }
-     }
+    }
 
     public String delete(Request request, Response response) {
         try {
@@ -215,4 +212,17 @@ public class UsersService {
         return gson.toJson(user);
     }
 
+    private String hashPassword(String password) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] hashBytes = md.digest(password.getBytes());
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hashBytes) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Failed to hash password", e);
+        }
+    }
 }
