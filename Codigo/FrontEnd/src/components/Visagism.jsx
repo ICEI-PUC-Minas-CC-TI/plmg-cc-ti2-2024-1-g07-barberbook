@@ -105,7 +105,7 @@ const Input = styled.input`
 `;
 
 const LoadingContainerStyles = styled.div`
-  width: 100vw;
+  width: 100%;
   margin-top: 50px;
   max-width: 425px;
   display: flex;
@@ -125,6 +125,7 @@ function Visagism() {
   const [model, setModel] = useState(null);
   const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isFace, setIsFace] = useState(true);
 
   useEffect(() => {
     const storedUser = JSON.parse(sessionStorage.getItem("currentUser"));
@@ -143,7 +144,6 @@ function Visagism() {
 
       try {
         const model = await tmImage.load(modelURL, metadataURL);
-        console.log("Modelo carregado com sucesso");
         setModel(model);
       } catch (error) {
         console.error("Erro ao carregar o modelo:", error);
@@ -170,15 +170,48 @@ function Visagism() {
   };
 
   const sendPicture = async () => {
-    setPrediction(false);
+    setPrediction(null);
     setLoading(true);
-    if (model && imageDataUrl) {
-      const image = await createImageBitmap(dataUrlToBlob(imageDataUrl));
-      const prediction = await model.predict(image);
+    setIsFace(true);
 
-      const highestPrediction = getHighestPrediction(prediction);
-      setLoading(false);
-      setPrediction(highestPrediction);
+    if (model && imageDataUrl) {
+      try {
+        const isFace = await verifyFace(imageDataUrl);
+
+        if (isFace) {
+          setIsFace(true);
+          const image = await createImageBitmap(dataUrlToBlob(imageDataUrl));
+          const prediction = await model.predict(image);
+
+          const highestPrediction = getHighestPrediction(prediction);
+          setLoading(false);
+          setPrediction(highestPrediction);
+        } else {
+          setLoading(false);
+          setIsFace(false);
+        }
+      } catch (error) {
+        setLoading(false);
+        console.error("Erro ao verificar o rosto:", error);
+      }
+    }
+  };
+
+  const verifyFace = async (imageDataUrl) => {
+    try {
+      const response = await fetch('http://localhost:5000/face_detect', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ image: imageDataUrl.split(',')[1] })
+      });
+
+      const data = await response.json();
+      return data.return === "true";
+    } catch (error) {
+      console.error("Erro ao verificar o rosto:", error);
+      return false;
     }
   };
 
@@ -231,15 +264,20 @@ function Visagism() {
             <ClipLoader loading={loading} size={80} color={"var(--primary)"} />
           </LoadingContainerStyles>
         )}
-        {prediction && (
+        {isFace && prediction && (
           <div>
             <H2>Seu formato de rosto é: {prediction}</H2>
             <P>{faceShapes[prediction]}</P>
           </div>
         )}
+        {!isFace && (
+          <div>
+            <H2>Nenhum rosto foi identificado, envie uma foto válida.</H2>
+          </div>
+        )}
       </DivService>
     </Page>
   );
-}
+}  
 
 export default Visagism;

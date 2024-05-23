@@ -371,7 +371,7 @@ function Home() {
 
               <FooterFixed>
                 <Button>
-                  <FaceIcon style={{ width: '1.4em', height: '1.4em' }} onClick={() => navigate(`/HomePage/store/${stores.id}/VisagismPage/${storedUser.id}`)} />
+                  <FaceIcon style={{ width: '1.4em', height: '1.4em' }} onClick={() => storedUser ? navigate(`/HomePage/store/${stores.id}/VisagismPage/${storedUser.id}`) : navigate(`/HomePage/store/${stores.id}/NumberPage`)} />
                 </Button>
                 <PaddingButton>
                   <Button style={{ color: 'var(--secondary)' }} onClick={scrollToServices}>

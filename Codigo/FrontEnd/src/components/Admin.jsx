@@ -361,7 +361,7 @@ function AdminPage() {
             <Page>
                   <Header>
                         <H1>Selecione os Horários</H1>
-                        <Exit onClick={() => { sessionStorage.clear(); navigate(`/HomePage/store/${storeId}`); }}>X</Exit>
+                        <Exit onClick={() => { navigate(`/HomePage/store/${storeId}`); }}>X</Exit>
                   </Header>
 
                   <DivService>
