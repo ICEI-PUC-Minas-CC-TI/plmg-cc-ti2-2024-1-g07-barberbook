@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { useNavigate, useParams } from 'react-router-dom';
 import ClipLoader from "react-spinners/ClipLoader";
 import * as tmImage from '@teachablemachine/image';
+import { cortes, faceShapes } from "../assets/data/data";
 
 const H1 = styled.h1`
   font-size: 25px;
@@ -25,6 +26,11 @@ const H2 = styled.h2`
   margin: 20px 0 0;
 `;
 
+const H3 = styled.h3`
+  font-size: 15px;
+  font-style: normal;
+`
+
 const P = styled.p`
   font-size: 15px;
   font-style: normal;
@@ -36,6 +42,7 @@ const P = styled.p`
 `;
 
 const Header = styled.div`
+  z-index: 100;
   width: 100%;
   max-width: 425px;
   background-color: var(--white);
@@ -70,7 +77,7 @@ const Exit = styled.button`
 `;
 
 const DivService = styled.div`
-  padding: 100px 20px 100px;
+  padding: 100px 20px 0;
   color: var(--black);
   text-decoration: none;
   justify-content: center;
@@ -115,6 +122,99 @@ const LoadingContainerStyles = styled.div`
   z-index: 999;
 `;
 
+const ImgStyle = styled.img`
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+`;
+
+const ImgContainer = styled.div`
+  width: 100%;
+  margin: 0;
+`;
+
+const DivCortes = styled.div`
+  width: 100%;
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  padding: 15px 0 10px;
+  &::-webkit-scrollbar {
+    height: 8px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: #888;
+    border-radius: 10px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+`;
+
+const Photo = styled.img`
+  height: auto;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  cursor: pointer;
+`;
+
+const CardPhoto = styled.div`
+  display: flex;
+  width: 100px;
+  flex-direction: column;
+`;
+
+const Modal = styled.div`
+  display: ${({ show }) => (show ? 'flex' : 'none')};
+  position: fixed;
+  z-index: 1000;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  max-width: 425px;
+  margin: 0 auto;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.8);
+  justify-content: center;
+  align-items: center;
+`;
+
+
+const ModalContent = styled.div`
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 80%;
+  text-align: center;
+`;
+
+const ModalImage = styled.img`
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+`;
+
+const ModalTitle = styled.h3`
+  margin: 10px 0 0;
+  font-size: 20px;
+  font-weight: 600;
+  text-align: start;
+  color: var(--black);
+`;
+
+const ModalDescription = styled.p`
+  font-size: 15px;
+  margin: 10px 0 0;
+  padding: 0;
+  font-weight: 400;
+  text-align: start;
+  color: var(--black);
+`
+
 function Visagism() {
   const navigate = useNavigate();
   const { storeId } = useParams();
@@ -126,6 +226,13 @@ function Visagism() {
   const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isFace, setIsFace] = useState(true);
+  const [image, setImage] = useState(null);
+  const [modalShow, setModalShow] = useState(false);
+  const [modalImage, setModalImage] = useState("");
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalDescription, setModalDescription] = useState("");
+  const [showTakePhotoButton, setShowTakePhotoButton] = useState(true);
+  const [showInstructions, setShowInstructions] = useState(true);
 
   useEffect(() => {
     const storedUser = JSON.parse(sessionStorage.getItem("currentUser"));
@@ -186,6 +293,11 @@ function Visagism() {
           const highestPrediction = getHighestPrediction(prediction);
           setLoading(false);
           setPrediction(highestPrediction);
+
+          setShowUploadField(false);
+          setShowInstructions(false);
+          setShowButton(false);
+          setShowTakePhotoButton(false);
         } else {
           setLoading(false);
           setIsFace(false);
@@ -196,6 +308,7 @@ function Visagism() {
       }
     }
   };
+
 
   const verifyFace = async (imageDataUrl) => {
     try {
@@ -208,6 +321,7 @@ function Visagism() {
       });
 
       const data = await response.json();
+      setImage(data.image ? `data:image/jpeg;base64,${data.image}` : null);
       return data.return === "true";
     } catch (error) {
       console.error("Erro ao verificar o rosto:", error);
@@ -241,20 +355,32 @@ function Visagism() {
     return new Blob([u8arr], { type: mime });
   };
 
-  const faceShapes = {
-    oval: "O formato oval de rosto tem um equilíbrio estético e é bastante flexível, permitindo diversos cortes de cabelo e estilos de barba. É recomendado evitar franjas que cubram a testa. A barba pode ser feita com linhas horizontais e verticais, com um leve volume.",
-    redondo: "Para rostos redondos, é importante valorizar o uso de topetes, a fim de alongar visualmente o formato do rosto. Assim como as costeletas, que podem ser um pouco mais longas, mas não muito volumosas.",
-    quadrado: "Para este formato anguloso, é ideal optar por cortes de cabelo mais estruturados e com textura. Barbas mais curtas e geométricas tendem a favorecer, assim como franjas laterais para suavizar os traços marcados."
+  const handlePhotoClick = (photo, name, description) => {
+    setModalImage(photo);
+    setModalTitle(name);
+    setModalDescription(description);
+    setModalShow(true);
+  };
+
+  const closeModal = () => {
+    setModalShow(false);
   };
 
   return (
     <Page>
       <Header>
         <H1>Visagismo</H1>
-        <Exit onClick={() => { sessionStorage.clear(); navigate(`/HomePage/store/${storeId}`); }}>X</Exit>
+        <Exit onClick={() => { navigate(`/HomePage/store/${storeId}`); }}>X</Exit>
       </Header>
       <DivService>
-        <Button onClick={takePicture}>Tirar Foto</Button>
+        {showInstructions && (
+          <>
+            <H2 style={{margin: '0 0 16px'}}>O que é o visagismo?</H2>
+            <P style={{fontSize: '18px', textAlign: 'start', margin: '0', padding: '0'}}>O Visagismo é uma técnica que analisa a forma do rosto de uma pessoa e sugere cortes de cabelo e estilos que melhor se adequam a suas características faciais. Isso ajuda a realçar os traços e criar um visual mais harmonioso e favorecedor. Nosso sistema realiza o Visagismo utilizando técnicas de Inteligência Artificial para analisar a foto do seu rosto e sugerir cortes de cabelo apropriados. No entanto, é importante ressaltar que as sugestões de cortes apresentadas são apenas recomendações, e a decisão final cabe a você..</P>
+            <P style={{color: 'var(--red)', fontWeight: '600', margin: '15px 0 0'}}>Aviso: Para obter os melhores resultados, por favor, envie uma foto frontal nítida do seu rosto.</P>
+          </>
+        )}
+         {showTakePhotoButton && <Button onClick={() => { takePicture(); }}>Tirar Foto</Button>}
         {showUploadField && (
           <Input type="file" accept="image/*" onChange={handleUpload} />
         )}
@@ -265,10 +391,24 @@ function Visagism() {
           </LoadingContainerStyles>
         )}
         {isFace && prediction && (
-          <div>
-            <H2>Seu formato de rosto é: {prediction}</H2>
-            <P>{faceShapes[prediction]}</P>
-          </div>
+          <>
+            <ImgContainer>
+              <ImgStyle src={image} alt="Processed" />
+            </ImgContainer>
+            <div>
+              <H2>Seu formato de rosto é: {prediction}</H2>
+              <P style={{ padding: '0' }}>{faceShapes[prediction]}</P>
+            </div>
+            <H2>Confira algumas sugestões de cortes:</H2>
+            <DivCortes>
+              {cortes[prediction].map((corte, index) => (
+                <CardPhoto key={index}>
+                  <Photo src={corte.photo} alt={corte.name} onClick={() => handlePhotoClick(corte.photo, corte.name, corte.description)} />
+                  <H3>{corte.name}</H3>
+                </CardPhoto>
+              ))}
+            </DivCortes>
+          </>
         )}
         {!isFace && (
           <div>
@@ -276,8 +416,15 @@ function Visagism() {
           </div>
         )}
       </DivService>
+      <Modal show={modalShow} onClick={closeModal}>
+        <ModalContent>
+          <ModalImage src={modalImage} alt={modalTitle} />
+          <ModalTitle>{modalTitle}</ModalTitle>
+          <ModalDescription>{modalDescription}</ModalDescription>
+        </ModalContent>
+      </Modal>
     </Page>
   );
-}  
+}
 
 export default Visagism;

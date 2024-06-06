@@ -399,7 +399,7 @@ function SchedulingPage() {
     <Page>
       <Header>
         <H_1>Selecione seu Horário</H_1>
-        <Exit onClick={() => { sessionStorage.clear(); navigate(-3); }}>X</Exit>
+        <Exit onClick={() => {navigate(-3); }}>X</Exit>
       </Header>
 
       {calendarContent}

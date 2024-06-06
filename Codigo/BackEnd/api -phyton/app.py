@@ -30,10 +30,10 @@ def get_face_shape(image, landmarks):
         pt2 = (int(t[2]), int(t[3]))
         pt3 = (int(t[4]), int(t[5]))
         triangle_pts = np.array([pt1, pt2, pt3], np.int32)
-        cv2.drawContours(image, [triangle_pts], 0, (0, 255, 0), 1)
+        cv2.drawContours(image, [triangle_pts], 0, (255, 255, 255), 1)
 
-    return image
-
+    x, y, w, h = cv2.boundingRect(face_contour_pts)
+    return image, (x, y, w, h)
 
 def process_image(image_base64):
     try:
@@ -49,14 +49,26 @@ def process_image(image_base64):
 
         if result.multi_face_landmarks:
             face_landmarks = result.multi_face_landmarks[0].landmark
-            image_with_landmarks = get_face_shape(image.copy(), face_landmarks)
-            return image_with_landmarks, "true"
+            image_with_landmarks, face_rect = get_face_shape(image.copy(), face_landmarks)
+            x, y, w, h = face_rect
+
+            # Add margins to the face rectangle
+            margin_factor = 0.4  # 40% margin
+            x_margin = int(w * margin_factor)
+            y_margin = int(h * margin_factor)
+
+            x_start = max(0, x - x_margin)
+            y_start = max(0, y - y_margin)
+            x_end = min(image.shape[1], x + w + x_margin)
+            y_end = min(image.shape[0], y + h + y_margin)
+
+            cropped_image = image_with_landmarks[y_start:y_end, x_start:x_end]
+            return cropped_image, "true"
         else:
             return None, "false"
     except Exception as e:
         logging.error(f"Error processing image: {e}")
         return None, "Erro ao processar a imagem."
-
 
 @app.route('/face_detect', methods=['POST'])
 def face_shape():
@@ -71,10 +83,9 @@ def face_shape():
         image_bytes = buffer.tobytes()
         image_base64_landmarks = base64.b64encode(image_bytes).decode('utf-8')
 
-        return jsonify({'return': message})
+        return jsonify({'return': message, 'image': image_base64_landmarks})
     else:
         return jsonify({'return': message}), 500
-
 
 if __name__ == '__main__':
     app.run(debug=True)
