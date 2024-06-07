@@ -11,6 +11,14 @@ public class Users {
     public Users() {
     }
 
+    public Users(int id, int storeId, String type, String name, String phoneNumber) {
+        setId(id);
+        setStoreId(storeId);
+        setType(type);
+        setName(name);
+        setPhoneNumber(phoneNumber);
+    }
+
     public Users(int id, int storeId, String type, String name, String phoneNumber, String passwordHash) {
         setId(id);
         setStoreId(storeId);

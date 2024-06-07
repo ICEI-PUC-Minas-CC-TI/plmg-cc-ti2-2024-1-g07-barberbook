@@ -384,7 +384,7 @@ function Visagism() {
         {showUploadField && (
           <Input type="file" accept="image/*" onChange={handleUpload} />
         )}
-        {showButton && <Button onClick={sendPicture}>Enviar foto</Button>}
+        {showButton && <Button style={{marginBottom:'1rem'}} onClick={sendPicture}>Enviar foto</Button>}
         {loading && (
           <LoadingContainerStyles>
             <ClipLoader loading={loading} size={80} color={"var(--primary)"} />
@@ -412,7 +412,7 @@ function Visagism() {
         )}
         {!isFace && (
           <div>
-            <H2>Nenhum rosto foi identificado, envie uma foto válida.</H2>
+            <H2 style={{marginBottom:'2rem'}}>Nenhum rosto foi identificado, envie uma foto válida.</H2>
           </div>
         )}
       </DivService>

@@ -176,7 +176,7 @@ function ServicePage() {
     <Page>
       <Header>
         <H_1>Serviço Selecionado</H_1>
-        <Exit onClick={() => { sessionStorage.clear(); navigate(-1); }}>X</Exit>
+        <Exit onClick={() => { navigate(-1); }}>X</Exit>
       </Header>
       {isLoading ? (
         <LoadingContainerStyles>

@@ -58,13 +58,15 @@ public class UsersService {
             String password = request.queryParams("password_hash");
             String storeIdParam = request.queryParams("store_id");
             int storeId = Integer.parseInt(storeIdParam);
-            Users user = usersDAO.login(phoneNumber, password, storeId);
-            String passwordHash = hashPassword(password);
-            if (passwordHash.equals(user.getPasswordHash())) {
+            
+            // Verifica se o usuário existe e as credenciais estão corretas
+            Users user = usersDAO.login(phoneNumber, hashPassword(password), storeId);
+            if (user != null) {
                 response.status(200);
                 return "{\"user\": \"Autenticado\", \"id\": " + user.getId() + ", \"type\": \"" + user.getType()
                         + "\", \"name\": \"" + user.getName() + "\"}";
             } else {
+                // Usuário não encontrado ou credenciais inválidas
                 response.status(401);
                 return "{\"error\": \"Invalid credentials\"}";
             }
@@ -77,7 +79,7 @@ public class UsersService {
             return "{\"error\": \"Failed to authenticate user\"}";
         }
     }
-
+    
     public String get(Request request, Response response) {
         try {
             String idParam = request.params(":id");

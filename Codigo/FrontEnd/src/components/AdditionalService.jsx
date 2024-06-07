@@ -188,7 +188,7 @@ function AdditionalService() {
     <Page>
       <Header>
         <H_1>Serviços Adicionais</H_1>
-        <Exit onClick={() => { sessionStorage.clear(); navigate(-2); }}>X</Exit>
+        <Exit onClick={() => { navigate(-2); }}>X</Exit>
       </Header>
       {isLoading ? (
         <LoadingContainerStyles>

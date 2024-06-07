@@ -49,17 +49,17 @@ public class UsersDAO extends DAO {
     public Users get(int id) {
         Users user = null;
         try {
-            PreparedStatement stmt = conexao.prepareStatement("SELECT * FROM users WHERE id = ?");
+            PreparedStatement stmt = conexao
+                    .prepareStatement("SELECT id, store_id, type, name, phone_number FROM users WHERE id = ?");
             stmt.setInt(1, id);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 int storeId = rs.getInt("store_id");
                 String type = rs.getString("type");
                 String name = rs.getString("name");
+                String phoneNumber = rs.getString("phone_number");
 
-                String phone_number = rs.getString("phone_number");
-                String password_hash = rs.getString("password_hash"); // Alterado para String
-                user = new Users(id, storeId, type, name, phone_number, password_hash);
+                user = new Users(id, storeId, type, name, phoneNumber);
             }
             stmt.close();
             return user;
@@ -87,13 +87,12 @@ public class UsersDAO extends DAO {
     public Users update(Users user) {
         try {
             PreparedStatement stmt = conexao.prepareStatement(
-                    "UPDATE users SET store_id = ?, name = ?, type = ?, phone_number = ?, password_hash = ? WHERE id = ?");
+                    "UPDATE users SET store_id = ?, name = ?, type = ?, phone_number = ? WHERE id = ?");
             stmt.setInt(1, user.getStoreId());
             stmt.setString(2, user.getName());
             stmt.setString(3, user.getType());
             stmt.setString(4, user.getPhoneNumber());
-            stmt.setString(5, user.getPasswordHash()); // Alterado para String
-            stmt.setInt(6, user.getId());
+            stmt.setInt(5, user.getId());
             int rowsUpdated = stmt.executeUpdate();
             stmt.close();
             if (rowsUpdated > 0) {
@@ -142,23 +141,27 @@ public class UsersDAO extends DAO {
         return phoneNumber;
     }
 
-    public Users login(String phoneNumber, String passwordHash, int storeId) { // Alterado para String
-        Users user = null;
+    public Users login(String phoneNumber, String passwordHash, int storeId) {
         try {
+            Users user = null;
             phoneNumber = addHyphenToPhoneNumber(phoneNumber);
 
-            PreparedStatement stmt = conexao
-                    .prepareStatement("SELECT * FROM users WHERE phone_number = ? AND store_id = ?");
+            PreparedStatement stmt = conexao.prepareStatement(
+                    "SELECT id, type, name, password_hash FROM users WHERE phone_number = ? AND store_id = ?");
             stmt.setString(1, phoneNumber);
             stmt.setInt(2, storeId);
 
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                int id = rs.getInt("id");
-                String type = rs.getString("type");
-                String name = rs.getString("name");
-                String retrievedPasswordHash = rs.getString("password_hash"); // Alterado para String
-                user = new Users(id, storeId, name, type, phoneNumber, retrievedPasswordHash);
+                String retrievedPasswordHash = rs.getString("password_hash");
+
+                if (passwordHash.equals(retrievedPasswordHash)) {
+                    int id = rs.getInt("id");
+                    String type = rs.getString("type");
+                    String name = rs.getString("name");
+
+                    user = new Users(id, storeId, type, name, phoneNumber);
+                }
             }
             stmt.close();
             return user;
@@ -166,5 +169,4 @@ public class UsersDAO extends DAO {
             throw new RuntimeException(e);
         }
     }
-
 }

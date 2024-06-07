@@ -150,6 +150,7 @@ function MyScheduling() {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isPassedAppointment, setIsPassedAppointment] = useState(false);
 
   useEffect(() => {
     fetch(`http://localhost:6789/appointments/user/${userId}/store/${storeId}`)
@@ -177,6 +178,14 @@ function MyScheduling() {
     }
   }, [appointments]);
 
+  const isAppointmentPassed = (appointment) => {
+    const currentDate = new Date();
+    const appointmentDate = new Date(appointment.appointmentsDate);
+    appointmentDate.setHours(convertTo24Hour(appointment.startTime).split(':')[0]);
+    appointmentDate.setMinutes(convertTo24Hour(appointment.startTime).split(':')[1]);
+    return currentDate > appointmentDate;
+  };
+
   const convertTo24Hour = (time12h) => {
     const [time, modifier] = time12h.split(' ');
     const [hours, minutes, seconds] = time.split(':');
@@ -188,6 +197,18 @@ function MyScheduling() {
     }
     const formattedTime = `${hours24h.toString().padStart(2, '0')}:${minutes}`;
     return formattedTime;
+  };
+
+  const sortByDateAsc = (a, b) => {
+    const dateA = new Date(a.appointmentsDate);
+    const dateB = new Date(b.appointmentsDate);
+    return dateA - dateB;
+  };
+
+  const sortByDateDesc = (a, b) => {
+    const dateA = new Date(a.appointmentsDate);
+    const dateB = new Date(b.appointmentsDate);
+    return dateB - dateA;
   };
 
   const formatWeekday = (dateString) => {
@@ -219,8 +240,10 @@ function MyScheduling() {
 
   const handleCancel = (id) => {
     setShowModal(true);
+    const appointment = appointments.find((appointment) => appointment.id === id);
+    setIsPassedAppointment(isAppointmentPassed(appointment));
   };
-
+  
   const deleteAppointment = (id) => {
     fetch(`http://localhost:6789/appointments/delete/${id}`, {
       method: 'DELETE',
@@ -235,7 +258,15 @@ function MyScheduling() {
       .catch((error) => {
         console.error('Erro ao cancelar agendamento:', error);
       });
-  }
+  };
+
+  const pastAppointments = appointments.filter(isAppointmentPassed);
+  const futureAppointments = appointments.filter(appointment => !isAppointmentPassed(appointment));
+
+  const sortedPastAppointments = pastAppointments.sort(sortByDateDesc);
+  const sortedFutureAppointments = futureAppointments.sort(sortByDateAsc);
+
+  const sortedAppointments = [...sortedFutureAppointments, ...sortedPastAppointments];
 
   return (
     <Page>
@@ -249,17 +280,19 @@ function MyScheduling() {
         </LoadingContainerStyles>
       )}
       <DivService>
-        {Array.isArray(appointments) && appointments.length > 0 ? (
-          appointments.map((appointment) => {
+        {Array.isArray(sortedAppointments) && sortedAppointments.length > 0 ? (
+          sortedAppointments.map((appointment) => {
             const service = services.find((s) => s.id === appointment.serviceId);
             const serviceName = service ? service.title : '';
+            const isPassed = isAppointmentPassed(appointment);
+            const buttonStyle = isPassed ? { opacity: 0.5 } : {};
             return (
-              <Button key={appointment.id}>
+              <Button key={appointment.id} style={buttonStyle}>
                 <P>
                   {convertTo24Hour(appointment.startTime)} | {formatWeekday(appointment.appointmentsDate)} <br /> {serviceName}
                 </P>
                 <CancelButton onClick={() => handleCancel(appointment.id)}>
-                  <TrashIcon />
+                <TrashIcon />
                 </CancelButton>
               </Button>
             );
@@ -270,10 +303,12 @@ function MyScheduling() {
         {showModal && (
           <ModalBackground>
             <ModalDiv>
-              <P style={{ margin: '0 0 1rem' }}>Deseja realmente cancelar o agendamento?</P>
+              <P style={{ margin: '0 0 1rem' }}>
+                {isPassedAppointment ? 'Deseja realmente excluir o agendamento passado?' : 'Deseja realmente cancelar o agendamento?'}
+              </P>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
                 <ModalButton onClick={() => setShowModal(false)}>Não</ModalButton>
-                <ModalButton style={{ backgroundColor: 'var(--light-primary)' }} onClick={() => deleteAppointment(appointments[0].id)}>Sim</ModalButton>
+                <ModalButton style={{ backgroundColor: 'var(--light-primary)' }} onClick={() => deleteAppointment(sortedAppointments[0].id)}>Sim</ModalButton>
               </div>
             </ModalDiv>
           </ModalBackground>
