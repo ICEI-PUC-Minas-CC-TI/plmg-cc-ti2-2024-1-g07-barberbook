@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from 'react-router-dom';
-import Page from "./Page";
 import styled from "styled-components";
-import "../assets/css/index.css";
-import stores from "../assets/js/store";
+import ClipLoader from "react-spinners/ClipLoader";
+import Page from "./Page";
 
 const Header = styled.div`
   width: 100%;
-  max-width: 420px;
+  max-width: 425px;
   background-color: var(--white);
   display: flex;
   justify-content: space-between;
@@ -95,7 +94,7 @@ const ServicePrice = styled.div`
 const Footer = styled.div`
   width: 100%;
   height:60px;
-  max-width:420px;
+  max-width:425px;
   background-color: var(--secondary);
   display: flex;
   justify-content: space-between;
@@ -128,32 +127,44 @@ const Next = styled(Back)`
   background-color: var(--primary);
 `;
 
+const LoadingContainerStyles = styled.div`
+  width: 100vw;
+  height: 100vh;
+  max-width: 425px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.8);
+  z-index: 999; 
+`;
+
 function ServicePage() {
   const { storeId, serviceId } = useParams();
   const navigate = useNavigate();
-  const [store, setStore] = useState(null);
   const [service, setService] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const foundStore = stores.find(store => store.id === parseInt(storeId));
-    if (foundStore) {
-      setStore(foundStore);
-    } else {
-      console.error('Loja não encontrada');
-      navigate(`/HomePage/store/${storeId}`);
-    }
-
-    const foundService = stores.flatMap(store => store.services).find(service => service.id === parseInt(serviceId));
-    if (foundService) {
-      setService(foundService);
-    } else {
-      console.error('Serviço não encontrado');
-    }
-  }, [storeId, serviceId]);
+    setIsLoading(true);
+    fetch(`http://localhost:6789/services/${serviceId}`)
+      .then(response => response.json())
+      .then(data => {
+        setService(data);
+        setIsLoading(false);
+      })
+      .catch(error => {
+        console.error('Erro ao buscar serviço:', error);
+        setIsLoading(false);
+      });
+  }, [serviceId]);
 
   const handleServiceSelection = (foundService) => {
-    sessionStorage.setItem('SelectedService', JSON.stringify(foundService));
-    navigate(`/HomePage/store/${storeId}/ServicePage/${serviceId}/AdditionalService`);
+    if (foundService) {
+      sessionStorage.setItem('SelectedService', JSON.stringify(foundService));
+      navigate(`/HomePage/store/${storeId}/ServicePage/${serviceId}/AdditionalService`);
+    } else {
+      console.error('Serviço não encontrado.');
+    }
   }
 
   const handleNoSelection = () => {
@@ -165,18 +176,24 @@ function ServicePage() {
     <Page>
       <Header>
         <H_1>Serviço Selecionado</H_1>
-        <Exit onClick={() => { sessionStorage.clear(); navigate(-1); }}>X</Exit>
+        <Exit onClick={() => { navigate(-1); }}>X</Exit>
       </Header>
-
-      {service && (
-        <DivService>
-          <Service>
-            <ServiceText>{service.title}</ServiceText>
-            <ServicePrice>R$ {service.price.toFixed(2)}</ServicePrice>
-          </Service>
-        </DivService>
+      {isLoading ? (
+        <LoadingContainerStyles>
+          <ClipLoader loading={true} size={80} color={"var(--primary)"} />
+        </LoadingContainerStyles>
+      ) : (
+        service ? (
+          <DivService>
+            <Service>
+              <ServiceText>{service.title}</ServiceText>
+              <ServicePrice>R$ {service.price.toFixed(2)}</ServicePrice>
+            </Service>
+          </DivService>
+        ) : (
+          <p>Serviço não encontrado.</p>
+        )
       )}
-
       <Footer>
         <Back onClick={handleNoSelection}>Voltar</Back>
         <Next onClick={() => handleServiceSelection(service)}>Próximo</Next>

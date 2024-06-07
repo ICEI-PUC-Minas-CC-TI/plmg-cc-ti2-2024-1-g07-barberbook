@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import SearchIcon from '@mui/icons-material/Search';
 import { useNavigate } from "react-router-dom";
-import stores from "../assets/js/store";
+import ClipLoader from "react-spinners/ClipLoader";
+import MockUpImg from "../../public/mockup.svg";
 
 const Container = styled.div`
   width: 100%;
@@ -72,6 +73,7 @@ const DivMockUp = styled.div`
     flex-direction: column;
   }
 `;
+
 
 const MockUp = styled.img`
   width: 50vw;
@@ -159,6 +161,7 @@ const Search = styled.input`
   border: none;
   background-color: transparent;
   outline: none;  
+  z-index:4;
 
   &::placeholder {
     color: var(--secondary);
@@ -190,7 +193,7 @@ const SearchResultDropdown = styled.div`
     overflow-y: auto;
     background-color: var(--secondary);
     border-radius: 0 0 5px 5px;
-    z-index: 999;
+    z-index: 2;
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
 
     &::-webkit-scrollbar {
@@ -208,7 +211,7 @@ const SearchResultDropdown = styled.div`
 
     @media screen and (max-width: 425px) {
       max-width: 80%;
-      top: 11vh;
+      top: 10vh;
     }
 `;
 
@@ -222,6 +225,7 @@ const stylesDropdown = {
 }
 
 const SearchResultItem = styled.div`
+  z-index: 1;
   padding: 10px;
   color: var(--primary);
   background-color: transparent;
@@ -269,12 +273,48 @@ const Button = styled.button`
   }
 `;
 
-
+const LoadingContainerStyles = styled.div`
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.8);
+  z-index: 999;
+`;
 
 function LandingPage() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [stores, setStores] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStores = async () => {
+      try {
+        const response = await fetch('http://localhost:6789/stores/list/1', {
+          method: 'GET',
+          mode: 'cors'
+        });
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        setStores(data);
+
+        // Atraso de 2 segundos antes de definir isLoading como false
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 1000);
+      } catch (error) {
+        console.error('Error fetching barber shops:', error);
+        setIsLoading(false); // Definir isLoading como false em caso de erro
+      }
+    };
+
+    fetchStores();
+  }, []);
 
   const searchStore = (event) => {
     const query = event.target.value;
@@ -290,11 +330,20 @@ function LandingPage() {
     }
   };
 
-
   const handleStoreClick = (store) => {
-    navigate(`/HomePage/store/${store.id}`)
-    console.log("Loja selecionada:", store);
+    navigate(`/HomePage/store/${store.id}`);
   };
+
+  if (isLoading) {
+    return (
+      <Container>
+        <LoadingContainerStyles>
+          <ClipLoader loading={isLoading} size={80} color={"var(--primary)"} />
+        </LoadingContainerStyles>
+      </Container>
+    );
+  }
+
 
   return (
     <Container>
@@ -335,7 +384,7 @@ function LandingPage() {
           </SecondaryTitle>
           <Button onClick={() => navigate('/StoreRegister')} >Cadastrar Barbearia</Button>
         </Text>
-        <MockUp src="././public/mockup.svg" alt="" />
+        <MockUp src={MockUpImg} alt="Mockup" />
       </DivMockUp>
     </Container>
   );

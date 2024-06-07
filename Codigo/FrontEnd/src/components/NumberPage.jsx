@@ -3,11 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Page from "./Page";
 import styled from "styled-components";
 import InputMask from 'react-input-mask';
-import stores from "../assets/js/store";
 
 const Header = styled.div`
   width: 100%;
-  max-width: 420px;
+  max-width: 425px;
   background-color: var(--white);
   display: flex;
   justify-content: space-between;
@@ -84,7 +83,7 @@ const Service = styled.div`
 const Footer = styled.div`
   width: 100%;
   height: 60px;
-  max-width: 420px;
+  max-width: 425px;
   background-color: var(--secondary);
   display: flex;
   justify-content: center;
@@ -177,15 +176,12 @@ const Adress = styled.div`
   margin: 2px 0;
 `;
 
-const AdressBold = styled(Adress)`
-  font-weight: 700;
-`;
 
 
 function NumberPage() {
   const navigate = useNavigate();
-  const { storeId, userId } = useParams();
-  const [users, setUsers] = useState([]);
+  const { storeId } = useParams();
+  const parsedStoreId = parseInt(storeId);
   const [number, setNumber] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
@@ -193,38 +189,122 @@ function NumberPage() {
   const [showModal, setShowModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [ok, setOk] = useState(false);
-  const [testedPassword, setTestedPassword] = useState(false);
   const [save, setSave] = useState(true);
   const [next, setNext] = useState(true);
-  const store = stores.find(store => store.id === parseInt(storeId));
-
-  useEffect(() => {
-    if (store) {
-      setUsers(store.users || []);
-    }
-    if (localStorage.getItem("currentUser")) {
-      navigate(`/HomePage/store/${storeId}/MyAccount/${userId}`);
-    }
-  }, [store, storeId]);
+  const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
 
   const handleNext = () => {
-    // proxima etapa
+    fetch(`http://localhost:6789/users/test/${number}/${parsedStoreId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.result === 1) {
+          setNumberSaved(true);
+          setSave(true);
+          setOk(true);
+          setNext(false);
+        } else if (data.result === 0) {
+          setNumberSaved(false);
+          setSave(false);
+          setOk(true);
+          setNext(false);
+        } else {
+          setErrorMessage('Ocorreu um erro ao processar sua solicitação. Por favor, tente novamente mais tarde.');
+          setShowModal(true);
+        }
+      })
+      .catch(error => {
+        setErrorMessage('Ocorreu um erro ao processar sua solicitação. Por favor, tente novamente mais tarde.');
+        setShowModal(true);
+      });
   };
 
   const handleTestPassword = () => {
-   // testar senha
+    const userData = {
+      store_id: parsedStoreId,
+      phone_number: number,
+      password_hash: password
+    };
+
+    const queryParams = new URLSearchParams(userData).toString();
+    fetch(`http://localhost:6789/users/login?${queryParams}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(response => {
+        if (response.status === 200) {
+          return response.json();
+        } else {
+          setErrorMessage('Senha incorreta');
+          setShowModal(true);
+          throw new Error('Senha incorreta');
+        }
+      })
+      .then(data => {
+        if (data.user === "Autenticado") {
+          data.logged = true; 
+          const userId = data.id;
+          sessionStorage.setItem("currentUser", JSON.stringify(data));
+          navigate(`/HomePage/store/${parsedStoreId}/MyAccount/${userId}`);
+        } else {
+          setErrorMessage('Senha incorreta');
+          setShowModal(true);
+        }
+      })
+      
+      .catch(error => {
+        console.error('Erro ao enviar solicitação:', error);
+      });
   };
-  
 
   const handleSave = () => {
-    // salvar usuario
+    const userData = {
+      store_id: parsedStoreId,
+      name: name,
+      phone_number: number,
+      password_hash: password
+    };
+    console.log(userData);
+    const queryParams = new URLSearchParams(userData).toString();
+    fetch(`http://localhost:6789/users/insert?${queryParams}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(response => {
+        if (response.status === 201) {
+          return response.json();
+        } else {
+          throw new Error('Erro ao salvar usuário');
+        }
+      })
+      .then(data => {
+        data.logged = true;
+        sessionStorage.setItem('currentUser', JSON.stringify(data));
+
+        setErrorMessage('Usuário salvo com sucesso');
+        setShowModal(true);
+        navigate(`/HomePage/store/${parsedStoreId}/MyAccount/${data.id}`);
+      })
+      .catch(error => {
+        console.error('Erro ao salvar usuário:', error);
+        setErrorMessage('Erro ao salvar usuário. Por favor, tente novamente mais tarde.');
+        setShowModal(true);
+      });
   };
 
   return (
     <Page>
       <Header>
         <H1>Cadastro</H1>
-        <Exit onClick={() => navigate(`/HomePage/store/${storeId}`)}>X</Exit>
+        <Exit onClick={() => navigate(`/HomePage/store/${parsedStoreId}`)}>X</Exit>
       </Header>
       <DivService>
         <Service>

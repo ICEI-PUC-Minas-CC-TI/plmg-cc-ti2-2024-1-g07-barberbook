@@ -2,12 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from 'react-router-dom';
 import Page from "./Page";
 import styled from "styled-components";
+import ClipLoader from "react-spinners/ClipLoader";
 import "../assets/css/index.css";
-import stores from "../assets/js/store";
 
 const Header = styled.div`
   width: 100%;
-  max-width: 420px;
+  max-width: 425px;
   background-color: var(--white);
   display: flex;
   justify-content: space-between;
@@ -100,7 +100,7 @@ const ServicePrice = styled.div`
 const Footer = styled.div`
   width: 100%;
   height: 60px;
-  max-width: 420px;
+  max-width: 425px;
   background-color: var(--secondary);
   display: flex;
   justify-content: space-between;
@@ -134,27 +134,49 @@ const Next = styled(Back)`
   background-color: var(--primary);
 `;
 
+const LoadingContainerStyles = styled.div`
+  width: 100vw;
+  height: 100vh;
+  max-width: 425px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.8);
+  z-index: 999; 
+`;
+
 function AdditionalService() {
-  const { storeId, serviceId } = useParams(); // Obter serviceId da URL
+  const { storeId, serviceId } = useParams();
   const navigate = useNavigate();
-  const [store, setStore] = useState(null);
   const [additionalServices, setAdditionalServices] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const foundStore = stores.find(store => store.id === parseInt(storeId));
-    if (foundStore) {
-      setStore(foundStore);
-      const storeServices = foundStore.additionalServices;
-      setAdditionalServices(storeServices);
-    } else {
-      console.error('Loja não encontrada');
-      navigate(`/HomePage/store/${storeId}`);
-    }
+    const fetchAdditionalServices = async () => {
+      try {
+        const response = await fetch(`http://localhost:6789/addservice/store/${storeId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch additional services');
+        }
+        const data = await response.json();
+        setAdditionalServices(data);
+      } catch (error) {
+        console.error('Error fetching additional services:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAdditionalServices();
   }, [storeId]);
 
   const handleServiceSelection = (service) => {
-    sessionStorage.setItem('SelectedAdditionalService', JSON.stringify(service));
-    navigate(`/HomePage/store/${storeId}/ServicePage/${serviceId}/AdditionalService/SchedulingPage`);
+    if (service) {
+      sessionStorage.setItem('SelectedAdditionalService', JSON.stringify(service));
+      navigate(`/HomePage/store/${storeId}/ServicePage/${serviceId}/AdditionalService/SchedulingPage`);
+    } else {
+      console.error('Serviço adicional não encontrado.');
+    }
   };
 
   const handleNoSelection = () => {
@@ -166,18 +188,26 @@ function AdditionalService() {
     <Page>
       <Header>
         <H_1>Serviços Adicionais</H_1>
-        <Exit onClick={() => { sessionStorage.clear(); navigate(-2); }}>X</Exit>
+        <Exit onClick={() => { navigate(-2); }}>X</Exit>
       </Header>
-
-      <DivService>
-        {additionalServices.map(service => (
-          <Service key={service.id} onClick={() => handleServiceSelection(service)}>
-            <ServiceText>{service.title}</ServiceText>
-            <ServicePrice>R$ {service.price.toFixed(2)}</ServicePrice>
-          </Service>
-        ))}
-      </DivService>
-
+      {isLoading ? (
+        <LoadingContainerStyles>
+          <ClipLoader loading={true} size={80} color={"var(--primary)"} />
+        </LoadingContainerStyles>
+      ) : (
+        additionalServices && additionalServices.length > 0 ? (
+          <DivService>
+            {additionalServices.map(service => (
+              <Service key={service.id} onClick={() => handleServiceSelection(service)}>
+                <ServiceText>{service.title}</ServiceText>
+                <ServicePrice>R$ {service.price.toFixed(2)}</ServicePrice>
+              </Service>
+            ))}
+          </DivService>
+        ) : (
+          <p>Nenhum serviço adicional disponível.</p>
+        )
+      )}
       <Footer>
         <Back onClick={() => navigate(-1)}>Voltar</Back>
         <Next onClick={handleNoSelection}>Próximo</Next>

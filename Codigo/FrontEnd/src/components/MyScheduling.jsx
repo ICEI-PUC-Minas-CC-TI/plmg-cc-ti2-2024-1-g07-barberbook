@@ -3,6 +3,8 @@ import Page from "./Page";
 import styled from "styled-components";
 import { useNavigate, useParams } from 'react-router-dom';
 import TrashIcon from '@mui/icons-material/Delete';
+import { ClipLoader } from "react-spinners";
+
 const H1 = styled.h1`
   font-size: 25px;
   font-weight: 700;
@@ -22,7 +24,7 @@ const P = styled.p`
 
 const Header = styled.div`
   width: 100%;
-  max-width: 420px;
+  max-width: 425px;
   background-color: var(--white);
   display: flex;
   justify-content: space-between;
@@ -130,12 +132,107 @@ const ModalButton = styled.button`
     transform: scale(0.95);
   }
 `;
+const LoadingContainerStyles = styled.div`
+  width: 100svw;
+  height: 100svh;
+  max-width: 425px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.8);
+  z-index: 999; 
+`;
 
 function MyScheduling() {
   const { storeId, userId } = useParams();
   const [appointments, setAppointments] = useState([]);
+  const [services, setServices] = useState([]);
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [isPassedAppointment, setIsPassedAppointment] = useState(false);
+
+  useEffect(() => {
+    fetch(`http://localhost:6789/appointments/user/${userId}/store/${storeId}`)
+      .then((response) => response.json())
+      .then((data) => {
+        setAppointments(data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error('Erro ao buscar agendamentos:', error);
+      });
+  }, [storeId, userId]);
+
+  useEffect(() => {
+    if (appointments.length > 0) {
+      const serviceIds = appointments.map((appointment) => appointment.serviceId);
+      fetch(`http://localhost:6789/services/list/1}`)
+        .then((response) => response.json())
+        .then((data) => {
+          setServices(data);
+        })
+        .catch((error) => {
+          console.error('Erro ao buscar serviços:', error);
+        });
+    }
+  }, [appointments]);
+
+  const isAppointmentPassed = (appointment) => {
+    const currentDate = new Date();
+    const appointmentDate = new Date(appointment.appointmentsDate);
+    appointmentDate.setHours(convertTo24Hour(appointment.startTime).split(':')[0]);
+    appointmentDate.setMinutes(convertTo24Hour(appointment.startTime).split(':')[1]);
+    return currentDate > appointmentDate;
+  };
+
+  const convertTo24Hour = (time12h) => {
+    const [time, modifier] = time12h.split(' ');
+    const [hours, minutes, seconds] = time.split(':');
+    let hours24h = parseInt(hours, 10);
+    if (modifier === 'PM' && hours24h < 12) {
+      hours24h += 12;
+    } else if (modifier === 'AM' && hours24h === 12) {
+      hours24h = 0;
+    }
+    const formattedTime = `${hours24h.toString().padStart(2, '0')}:${minutes}`;
+    return formattedTime;
+  };
+
+  const sortByDateAsc = (a, b) => {
+    const dateA = new Date(a.appointmentsDate);
+    const dateB = new Date(b.appointmentsDate);
+    return dateA - dateB;
+  };
+
+  const sortByDateDesc = (a, b) => {
+    const dateA = new Date(a.appointmentsDate);
+    const dateB = new Date(b.appointmentsDate);
+    return dateB - dateA;
+  };
+
+  const formatWeekday = (dateString) => {
+    const parts = dateString.split(', ');
+    const monthName = parts[0].slice(0, 3);
+    const day = parseInt(parts[0].slice(4));
+
+    const monthAbbreviations = {
+      jan: 0, fev: 1, mar: 2, abr: 3, mai: 4, jun: 5,
+      jul: 6, ago: 7, set: 8, out: 9, nov: 10, dez: 11
+    };
+
+    const month = monthAbbreviations[monthName.toLowerCase()];
+
+    const currentYear = (new Date()).getFullYear();
+    let date = new Date(currentYear, month, day);
+
+    if (date.getMonth() !== month) {
+      date = new Date(currentYear, month - 1, day);
+    }
+
+    const options = { weekday: 'long', day: 'numeric' };
+    return `${date.toLocaleDateString('pt-BR', options)}, ${monthName}`;
+  };
 
   const handleExit = () => {
     navigate(-1);
@@ -143,29 +240,78 @@ function MyScheduling() {
 
   const handleCancel = (id) => {
     setShowModal(true);
-  }
+    const appointment = appointments.find((appointment) => appointment.id === id);
+    setIsPassedAppointment(isAppointmentPassed(appointment));
+  };
+  
+  const deleteAppointment = (id) => {
+    fetch(`http://localhost:6789/appointments/delete/${id}`, {
+      method: 'DELETE',
+    })
+      .then((response) => {
+        if (response.status === 200) {
+          const newAppointments = appointments.filter((appointment) => appointment.id !== id);
+          setAppointments(newAppointments);
+          setShowModal(false);
+        }
+      })
+      .catch((error) => {
+        console.error('Erro ao cancelar agendamento:', error);
+      });
+  };
+
+  const pastAppointments = appointments.filter(isAppointmentPassed);
+  const futureAppointments = appointments.filter(appointment => !isAppointmentPassed(appointment));
+
+  const sortedPastAppointments = pastAppointments.sort(sortByDateDesc);
+  const sortedFutureAppointments = futureAppointments.sort(sortByDateAsc);
+
+  const sortedAppointments = [...sortedFutureAppointments, ...sortedPastAppointments];
+
   return (
     <Page>
       <Header>
         <H1>Meus Agendamentos</H1>
         <Exit onClick={handleExit}>X</Exit>
       </Header>
+      {loading && (
+        <LoadingContainerStyles>
+          <ClipLoader color={'#000'} loading={loading} size={50} />
+        </LoadingContainerStyles>
+      )}
       <DivService>
-        <Button>
-          <P>9:30 | Terca Feira -22/03  <br /> Corte e Barba</P>
-          <CancelButton onClick={handleCancel}><TrashIcon /></CancelButton>
-        </Button>
+        {Array.isArray(sortedAppointments) && sortedAppointments.length > 0 ? (
+          sortedAppointments.map((appointment) => {
+            const service = services.find((s) => s.id === appointment.serviceId);
+            const serviceName = service ? service.title : '';
+            const isPassed = isAppointmentPassed(appointment);
+            const buttonStyle = isPassed ? { opacity: 0.5 } : {};
+            return (
+              <Button key={appointment.id} style={buttonStyle}>
+                <P>
+                  {convertTo24Hour(appointment.startTime)} | {formatWeekday(appointment.appointmentsDate)} <br /> {serviceName}
+                </P>
+                <CancelButton onClick={() => handleCancel(appointment.id)}>
+                <TrashIcon />
+                </CancelButton>
+              </Button>
+            );
+          })
+        ) : (
+          <P style={{ textAlign: 'center' }}>Não há agendamentos disponíveis.</P>
+        )}
         {showModal && (
           <ModalBackground>
             <ModalDiv>
-              <P style={{margin:'0 0 1rem'}}>Deseja realmente cancelar o agendamento?</P>
-              <div style={{display:'flex', justifyContent:'space-between', gap:'1rem'}}>
+              <P style={{ margin: '0 0 1rem' }}>
+                {isPassedAppointment ? 'Deseja realmente excluir o agendamento passado?' : 'Deseja realmente cancelar o agendamento?'}
+              </P>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
                 <ModalButton onClick={() => setShowModal(false)}>Não</ModalButton>
-                <ModalButton style={{backgroundColor:'var(--light-primary)'}} onClick={() => setShowModal(false)}>Sim</ModalButton>
+                <ModalButton style={{ backgroundColor: 'var(--light-primary)' }} onClick={() => deleteAppointment(sortedAppointments[0].id)}>Sim</ModalButton>
               </div>
             </ModalDiv>
           </ModalBackground>
-
         )}
       </DivService>
     </Page>

@@ -7,7 +7,7 @@ import 'react-calendar/dist/Calendar.css';
 
 const Header = styled.div`
   width: 100%;
-  max-width: 420px;
+  max-width: 425px;
   background-color: var(--white);
   display: flex;
   justify-content: space-between;
@@ -62,7 +62,7 @@ const DivService = styled.div`
 const Footer = styled.div`
   width: 100%;
   height: 60px;
-  max-width: 420px;
+  max-width: 425px;
   background-color: var(--secondary);
   display: flex;
   justify-content: space-between;
@@ -160,17 +160,6 @@ const Schedules = styled.div`
   margin: 0 auto 20px;
 `;
 
-const NumberInput = styled.input`
-  width: 100%;
-  height: 40px;
-  font-size: 16px;
-  margin: 10px 0;
-  padding: 5px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-`;
-
 const Div = styled.div`
   display: flex;
   justify-content: center;
@@ -179,16 +168,19 @@ const Div = styled.div`
 `;
 
 const DivDrop = styled.div`
+  box-sizing: border-box;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  grid-template-columns: 1fr 2fr;
   width: 100%;
-  max-width: 420px;
+  max-width: 425px;
   height: fit-content;
+  justify-content: space-between;
 `;
 
 const DivHours = styled.div`
       display: flex;
+      box-sizing: border-box;
+      text-align: center;
 `;
 
 const DurationInput = styled.input`
@@ -200,6 +192,7 @@ const DurationInput = styled.input`
   border: 1px solid #ccc;
   border-radius: 4px;
   box-sizing: border-box;
+  text-align: center;
 `;
 
 const Text = styled.p`
@@ -209,7 +202,7 @@ const Text = styled.p`
 `;
 
 const OpeningInput = styled.input`
-  width: 100%;
+  min-width: 80%;
   height: 40px;
   font-size: 16px;
   margin: 10px 0;
@@ -220,7 +213,7 @@ const OpeningInput = styled.input`
 `;
 
 const ClosingInput = styled.input`
-  width: 100%;
+  min-width: 80%;
   height: 40px;
   font-size: 16px;
   margin: 10px 0;
@@ -236,6 +229,13 @@ const ButtonSave = styled(Button)`
       padding: 10px 20px;
       font-size: 16px;
       font-weight: 700;
+`;
+
+const DivHeader = styled.div`
+      display: flex;
+      justify-content: space-between;
+      flex-direction: column;
+      align-items: end;
 `;
 
 function AdminPage() {
@@ -313,7 +313,6 @@ function AdminPage() {
                   t.time === time ? { ...t, available: !t.available } : t
             );
             setAvailableTimes(updatedAvailableTimes);
-            console.log(updatedAvailableTimes);
       };
 
       const handleDayClick = (value) => {
@@ -326,26 +325,49 @@ function AdminPage() {
       };
 
       const save = () => {
-            const updatedAvailableTimes = availableTimes.filter(time => time.available);
-            const updatedAvailableTimesForDay = { ...availableTimesForDay };
             const selectedDay = selectedDate.toISOString().split('T')[0];
-            updatedAvailableTimesForDay[selectedDay] = updatedAvailableTimes.map(time => time.time);
-            localStorage.setItem('availableTimes', JSON.stringify(updatedAvailableTimesForDay));
-            setShowModal(false);
-            console.log(availableTimes);
+            const formattedTimes = availableTimes
+                  .filter(time => time.available) 
+                  .map(time => time.time);
+
+            const updatedAvailableTimesForDay = {
+                  [selectedDay]: formattedTimes
+            };
+
+            const requestOptions = {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(updatedAvailableTimesForDay) 
+            };
+
+            console.log(JSON.stringify(updatedAvailableTimesForDay));
+
+            fetch(`http://localhost:6789/stores/insertTimes?id=${storeId}`, requestOptions)
+                  .then(response => {
+                        if (!response.ok) {
+                              throw new Error('Failed to update available times');
+                        }
+                        setShowModal(false);
+                        alert('Horários disponibilizados com sucesso');
+                  })
+                  .catch(error => {
+                        console.error('Error:', error);
+                        setErrorMessage('Failed to update available times');
+                  });
       };
+
 
       return (
             <Page>
                   <Header>
                         <H1>Selecione os Horários</H1>
-                        <Exit onClick={() => { sessionStorage.clear(); navigate(`/HomePage/store/${storeId}`); }}>X</Exit>
+                        <Exit onClick={() => { navigate(`/HomePage/store/${storeId}`); }}>X</Exit>
                   </Header>
 
                   <DivService>
                         <DivDrop>
-                              <Div>
-                                    <Text>Selecione a duração dos horários (em minutos)</Text>
+                              <DivHeader>
+                                    <Text>Duração dos horários (min)</Text>
                                     <DurationInput
                                           type="number"
                                           min="10"
@@ -354,29 +376,29 @@ function AdminPage() {
                                           value={duration}
                                           onChange={(e) => setDuration(parseInt(e.target.value))}
                                     />
-                              </Div>
+                              </DivHeader>
 
                               <DivHours>
-                                    <Div>
+                                    <DivHeader>
                                           <Text>Horário de abertura</Text>
                                           <OpeningInput
                                                 type="time"
                                                 value={openingTime}
                                                 onChange={(e) => setOpeningTime(e.target.value)}
                                           />
-                                    </Div>
-                                    <Div>
+                                    </DivHeader>
+                                    <DivHeader>
                                           <Text>Horário de fechamento</Text>
                                           <ClosingInput
                                                 type="time"
                                                 value={closingTime}
                                                 onChange={(e) => setClosingTime(e.target.value)}
                                           />
-                                    </Div>
+                                    </DivHeader>
                               </DivHours>
                         </DivDrop>
                         <Div>
-                              <ButtonSave onClick={() => generateSchedule()}>Gerar Horários</ButtonSave>
+                              <ButtonSave style={{ marginBottom: '10px' }} onClick={() => generateSchedule()}>Gerar Horários</ButtonSave>
                         </Div>
 
                         <Calendar

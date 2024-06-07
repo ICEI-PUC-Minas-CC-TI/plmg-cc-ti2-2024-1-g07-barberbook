@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import Page from "./Page";
 import styled from "styled-components";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import CurrencyInput from 'react-currency-input-field';
 
 
 const Header = styled.div`
   width: 100%;
-  max-width: 420px;
+  max-width: 425px;
   background-color: var(--white);
   display: flex;
   justify-content: space-between;
@@ -143,15 +143,25 @@ const P = styled.p`
   margin: 0;  
 `
 
+function capitalizeFirstLetter(string) {
+      let words = string.split(" ");
+      for (let i = 0; i < words.length; i++) {
+            words[i] = words[i].charAt(0).toUpperCase() + words[i].slice(1);
+      }
+      return words.join(" ");
+}
+
+
 function AddAdditionalService() {
       const navigate = useNavigate();
       const [serviceName, setServiceName] = useState('');
       const [serviceValue, setServiceValue] = useState('');
       const [showModal, setShowModal] = useState(false);
       const [errorMessage, setErrorMessage] = useState('');
+      const storeId = useParams();
 
       const handleServiceNameChange = (e) => {
-            setServiceName(e.target.value);
+            setServiceName(capitalizeFirstLetter(e.target.value));
       };
 
       const handleServiceValueChange = (value) => {
@@ -162,13 +172,45 @@ function AddAdditionalService() {
             setShowModal(false);
       };
 
-      const handleAddAdditionalService = () => {
+      const handleAddAdditionalService = async () => {
             if (!serviceName || !serviceValue) {
                   setErrorMessage('Preencha todos os campos.');
                   setShowModal(true);
                   setTimeout(() => {
-                  setShowModal(false)}, 2500);
+                        setShowModal(false)
+                  }, 2500);
                   return;
+            }
+
+            try {
+                  const formData = new URLSearchParams();
+                  formData.append('title', serviceName);
+                  formData.append('price', serviceValue);
+                  formData.append('store_id', storeId.storeId);
+
+                  const response = await fetch('http://localhost:6789/addservice/insert', {
+                        method: 'POST',
+                        headers: {
+                              'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: formData.toString()
+                  });
+
+                  if (!response.ok) {
+                        throw new Error('Erro ao adicionar serviço');
+                  }
+
+                  setServiceName('');
+                  setServiceValue('');
+                  setErrorMessage('Serviço adicionado com sucesso!');
+                  setShowModal(true);
+            } catch (error) {
+                  console.error('Erro ao adicionar serviço adicionar:', error);
+                  setErrorMessage('Erro ao adicionar serviço adicionar. Por favor, tente novamente mais tarde.');
+                  setShowModal(true);
+                  setTimeout(() => {
+                        setShowModal(false)
+                  }, 2500);
             }
       };
 
@@ -182,7 +224,7 @@ function AddAdditionalService() {
                   <DivService>
                         <Service>
                               <H_2>Nome do Serviço</H_2>
-                              <Input type="text" value={serviceName} onChange={handleServiceNameChange} placeholder="'Barba'"/>
+                              <Input type="text" value={serviceName} onChange={handleServiceNameChange} placeholder="'Barba'" />
                               <H_2>Valor do Serviço</H_2>
                               <CurrencyInput
                                     intlConfig={{ locale: 'pt-BR', currency: 'BRL' }}
