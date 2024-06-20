@@ -1,31 +1,28 @@
 cff-version: 1.0.1
 message: Please cite this software using these metadata.
-title: 
+title: BarberBook
 authors:
-  - family-names: 
-    given-names: 
-  - family-names: 
-    given-names: 
-  - family-names: 
-    given-names: 
-  - family-names: 
-    given-names: 
-  - family-names: 
-    given-names: 
-  - family-names: 
-    given-names:
+  - family-names: Siqueira de Lana
+    given-names: Guilherme Henrique
+  - family-names: Santos Andrade Almeida
+    given-names: João Gabriel
+  - family-names: de Freitas Viana
+    given-names: Leaonardo
+  - family-names: Amaral Passos Figueiredo
+    given-names: Leonardo
+  - family-names: Souza de Resende
+    given-names: Caio
   - name-suffix: Professor
     affiliation: PUC Minas
-    family-names: 
-    given-names: 
+    family-names: Soares Vieira de Vasconcelos
+    given-names: Amália
   - name-suffix: Professor
     affiliation: PUC Minas
-    family-names: 
-    given-names: 
+    family-names: Jerônimo de Almeida
+    given-names: Sandro
 keywords:
-  - 
-  - 
-repository-code: 
+  -
+repository-code: https://github.com/ICEI-PUC-Minas-CC-TI/plmg-cc-ti2-2024-1-g07-barberbook
 license: CC-BY-4.0
 version: 1.0.0
-date-released: 2022-07-14
+date-released: 2024-06-20
