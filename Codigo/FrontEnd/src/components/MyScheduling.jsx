@@ -147,26 +147,32 @@ function MyScheduling() {
   const { storeId, userId } = useParams();
   const [appointments, setAppointments] = useState([]);
   const [services, setServices] = useState([]);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isPassedAppointment, setIsPassedAppointment] = useState(false);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
 
   useEffect(() => {
     fetch(`http://localhost:6789/appointments/user/${userId}/store/${storeId}`)
       .then((response) => response.json())
       .then((data) => {
-        setAppointments(data);
+        if (data.error === "No appointments found") {
+          setError('Não há agendamentos disponíveis.');
+        } else {
+          setAppointments(data);
+        }
         setLoading(false);
       })
       .catch((error) => {
         console.error('Erro ao buscar agendamentos:', error);
+        setLoading(false);
       });
   }, [storeId, userId]);
 
   useEffect(() => {
     if (appointments.length > 0) {
-      const serviceIds = appointments.map((appointment) => appointment.serviceId);
       fetch(`http://localhost:6789/services/list/1}`)
         .then((response) => response.json())
         .then((data) => {
@@ -188,15 +194,14 @@ function MyScheduling() {
 
   const convertTo24Hour = (time12h) => {
     const [time, modifier] = time12h.split(' ');
-    const [hours, minutes, seconds] = time.split(':');
+    const [hours, minutes] = time.split(':');
     let hours24h = parseInt(hours, 10);
     if (modifier === 'PM' && hours24h < 12) {
       hours24h += 12;
     } else if (modifier === 'AM' && hours24h === 12) {
       hours24h = 0;
     }
-    const formattedTime = `${hours24h.toString().padStart(2, '0')}:${minutes}`;
-    return formattedTime;
+    return `${hours24h.toString().padStart(2, '0')}:${minutes}`;
   };
 
   const sortByDateAsc = (a, b) => {
@@ -239,18 +244,19 @@ function MyScheduling() {
   };
 
   const handleCancel = (id) => {
+    setSelectedAppointmentId(id);
     setShowModal(true);
     const appointment = appointments.find((appointment) => appointment.id === id);
     setIsPassedAppointment(isAppointmentPassed(appointment));
   };
-  
-  const deleteAppointment = (id) => {
-    fetch(`http://localhost:6789/appointments/delete/${id}`, {
+
+  const deleteAppointment = () => {
+    fetch(`http://localhost:6789/appointments/delete/${selectedAppointmentId}`, {
       method: 'DELETE',
     })
       .then((response) => {
         if (response.status === 200) {
-          const newAppointments = appointments.filter((appointment) => appointment.id !== id);
+          const newAppointments = appointments.filter((appointment) => appointment.id !== selectedAppointmentId);
           setAppointments(newAppointments);
           setShowModal(false);
         }
@@ -280,25 +286,29 @@ function MyScheduling() {
         </LoadingContainerStyles>
       )}
       <DivService>
-        {Array.isArray(sortedAppointments) && sortedAppointments.length > 0 ? (
-          sortedAppointments.map((appointment) => {
-            const service = services.find((s) => s.id === appointment.serviceId);
-            const serviceName = service ? service.title : '';
-            const isPassed = isAppointmentPassed(appointment);
-            const buttonStyle = isPassed ? { opacity: 0.5 } : {};
-            return (
-              <Button key={appointment.id} style={buttonStyle}>
-                <P>
-                  {convertTo24Hour(appointment.startTime)} | {formatWeekday(appointment.appointmentsDate)} <br /> {serviceName}
-                </P>
-                <CancelButton onClick={() => handleCancel(appointment.id)}>
-                <TrashIcon />
-                </CancelButton>
-              </Button>
-            );
-          })
+        {error ? (
+          <P style={{ textAlign: 'center' }}>{error}</P>
         ) : (
-          <P style={{ textAlign: 'center' }}>Não há agendamentos disponíveis.</P>
+          Array.isArray(sortedAppointments) && sortedAppointments.length > 0 ? (
+            sortedAppointments.map((appointment) => {
+              const service = services.find((s) => s.id === appointment.serviceId);
+              const serviceName = service ? service.title : '';
+              const isPassed = isAppointmentPassed(appointment);
+              const buttonStyle = isPassed ? { opacity: 0.5 } : {};
+              return (
+                <Button key={appointment.id} style={buttonStyle}>
+                  <P>
+                    {convertTo24Hour(appointment.startTime)} | {formatWeekday(appointment.appointmentsDate)} <br /> {serviceName}
+                  </P>
+                  <CancelButton onClick={() => handleCancel(appointment.id)}>
+                    <TrashIcon />
+                  </CancelButton>
+                </Button>
+              );
+            })
+          ) : (
+            <P style={{ textAlign: 'center' }}>Não há agendamentos disponíveis.</P>
+          )
         )}
         {showModal && (
           <ModalBackground>
@@ -308,7 +318,7 @@ function MyScheduling() {
               </P>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
                 <ModalButton onClick={() => setShowModal(false)}>Não</ModalButton>
-                <ModalButton style={{ backgroundColor: 'var(--light-primary)' }} onClick={() => deleteAppointment(sortedAppointments[0].id)}>Sim</ModalButton>
+                <ModalButton style={{ backgroundColor: 'var(--light-primary)' }} onClick={deleteAppointment}>Sim</ModalButton>
               </div>
             </ModalDiv>
           </ModalBackground>
